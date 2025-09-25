@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sabor pra Levar — PDV</title>
+<style>
+:root{
+  --ink:#0f172a;
+  --muted:#64748b;
+  --brand:#7c3aed;          /* Roxo para destaques */
+  --brand-dark:#6d28d9;
+  --bg:#f8fafc;
+
+  /* Cards */
+  --cardapio-bg:#f0fdf4;    /* verde-suave */
+  --cardapio-bd:#bbf7d0;
+  --pedido-bg:#f5f3ff;      /* roxo-suave */
+  --pedido-bd:#ddd6fe;
+
+  /* Modais (verde claro) */
+  --lime-bg:#eaffe6;
+  --lime-border:#86efac;
+  --green-shadow: rgba(2,44,34,.28);
+
+  /* Botões */
+  --ok:#16a34a;
+  --danger:#ef4444;
+  --warn:#f59e0b;
+  --info:#0ea5e9;
+}
+
+/* base */
+*{ box-sizing:border-box }
+body{ margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu; color:var(--ink); background:var(--bg) }
+
+/* HEADER: cinza ~6% degradê + logo à esquerda */
+header{
+  padding:14px 18px;
+  background:linear-gradient(90deg, rgba(0,0,0,.06), rgba(0,0,0,.03));
+  color:#111;
+  display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap
+}
+.brand{
+  display:flex; align-items:center; gap:10px;
+}
+.brand img{
+  height:34px; width:auto; display:block; border-radius:6px;
+}
+.header-note{ color:#111; font-size:12px }
+
+/* layout: centralizar os cards na janela */
+main{
+  max-width:1200px; margin:20px auto 80px; padding:0 18px;
+  display:flex; justify-content:center; align-items:flex-start;
+}
+.grid{
+  display:grid; grid-template-columns:1fr 1fr; gap:22px; width:100%; max-width:1000px;
+}
+
+/* cards */
+.card{
+  border-radius:18px; overflow:hidden;
+  box-shadow:0 8px 24px rgba(2,8,23,.06);
+  border:1px solid #e5e7eb;
+  transition:transform .15s ease, box-shadow .15s ease;
+  display:flex; flex-direction:column; align-items:center; /* centralizar conteúdo */
+}
+.card:hover{ transform:translateY(-2px); box-shadow:0 12px 28px rgba(2,8,23,.10) }
+.card h2{
+  margin:0; font-size:18px; width:100%; text-align:center; padding:14px 16px; color:#0b1324
+}
+.card .body{
+  padding:14px; width:100%; display:flex; flex-direction:column; align-items:center; /* centro */
+}
+
+/* temas */
+.card.cardapio{ background:var(--cardapio-bg); border-color:var(--cardapio-bd) }
+.card.cardapio h2{ background:rgba(187,247,208,.5) }
+
+.card.pedido{ background:var(--pedido-bg); border-color:var(--pedido-bd) }
+.card.pedido h2{ background:rgba(221,214,254,.5) }
+
+/* linha produto centralizada (texto à esquerda onde precisa) */
+.prod{
+  width:100%;
+  display:flex; justify-content:space-between; align-items:center;
+  padding:12px 10px; border-bottom:1px dashed #e5e7eb;
+}
+.prod:last-child{ border-bottom:none }
+.muted{ color:var(--muted); font-size:12px }
+.qty{ display:flex; gap:10px; align-items:center }
+
+/* tabela do pedido */
+table{ width:100%; border-collapse:collapse; max-width:640px }
+th,td{ padding:10px; border-bottom:1px solid #eef2f7; font-size:14px; text-align:left }
+tfoot td{ font-weight:700 }
+.row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap }
+
+/* botões com animação (lanche girando) */
+.btn{ position:relative; overflow:hidden; border:1px solid #e5e7eb; background:#fff; padding:10px 12px;
+  border-radius:12px; cursor:pointer; font-weight:700; transition:opacity .2s, transform .06s }
+.btn:hover{ transform:translateY(-1px) } .btn:active{ transform:translateY(1px) }
+.btn:disabled{ opacity:.7; cursor:not-allowed }
+.btn.primary{ background:var(--brand); color:#fff; border-color:transparent }
+.btn.ok{ background:var(--ok); color:#fff; border-color:transparent }
+.btn.danger{ background:var(--danger); color:#fff; border-color:transparent }
+.btn.warn{ background:var(--warn); color:#fff; border-color:transparent }
+.btn.info{ background:var(--info); color:#fff; border-color:transparent }
+.btn-min{ padding:6px 12px }
+
+/* clique ripple */
+.btn::before{
+  content:""; position:absolute; width:0; height:0; border-radius:50%;
+  background:rgba(255,255,255,.35); transform:translate(-50%,-50%); pointer-events:none; opacity:0;
+}
+.btn:active::before{
+  left:var(--x,50%); top:var(--y,50%); width:220%; height:220%; opacity:1; transition:width .35s ease,height .35s ease,opacity .6s ease;
+}
+
+/* spinner lanche no botão */
+@keyframes spin { to{ transform:rotate(360deg) } }
+.btn.loading{ color:transparent !important }
+.btn.loading::after{
+  content: attr(data-emoji);
+  position:absolute; top:50%; left:50%; font-size:16px; margin:-10px 0 0 -10px;
+  animation:spin .8s linear infinite;
+}
+
+/* badge */
+.badge{ display:inline-block; padding:2px 8px; border-radius:999px; font-size:11px; border:1px solid #e5e7eb; margin-left:6px }
+.badge.warn{ background:#fffbeb; border-color:#fde68a; color:#92400e }
+
+/* OVERLAYS (janelas +10%) */
+.overlay{
+  position:fixed; inset:0; background:rgba(15,23,42,.55); display:none; place-items:center; z-index:99; padding:2vh 1.5vw;
+}
+.overlay .box{
+  width:min(1330px,97vw);           /* + ~10% (era ~1210–1100) */
+  max-height:96vh;
+  border-radius:20px; overflow:hidden;
+  box-shadow:0 30px 70px var(--green-shadow);
+  border:1px solid var(--lime-border);
+  background:var(--lime-bg);
+  display:flex; flex-direction:column;
+}
+.box .topbar{ background:var(--brand); color:#fff; padding:18px 20px; font-weight:900; font-size:20px }
+.box .content{ padding:18px 20px; color:#064e3b; font-size:14px; overflow:auto }
+
+/* sucesso (também +10%) */
+.success{ position:fixed; inset:0; display:none; place-items:center; z-index:120; padding:2vh 1.5vw }
+.success .card{
+  width:min(1330px,97vw);  /* +10% */
+  max-height:96vh; border-radius:20px; overflow:hidden;
+  border:1px solid var(--lime-border); background:var(--lime-bg);
+  box-shadow:0 30px 70px var(--green-shadow); text-align:left; display:flex; flex-direction:column;
+}
+.success .topbar{ background:var(--brand); color:#fff; padding:20px; font-weight:900; font-size:22px }
+.success .body{ padding:22px 20px; color:#064e3b; overflow:auto }
+.success .body p{ margin:10px 0; font-size:16px }
+.success .ok{ background:var(--brand-dark); color:#fff; border:0; padding:12px 16px; border-radius:12px; cursor:pointer; font-weight:700 }
+
+/* Progress global (hambúrguer girando grande) */
+.progress{ position:fixed; inset:0; display:none; place-items:center; background:rgba(255,255,255,.55); z-index:98 }
+.progress .spinner{ font-size:54px; animation:spin 1s linear infinite; filter:drop-shadow(0 6px 10px rgba(2,44,34,.25)) }
+.progress .spinner::before{ content:"🍔" }
+
+/* rodapé */
+footer{
+  position:fixed; left:0; right:0; bottom:0;
+  background:#ffffffcc; backdrop-filter:saturate(140%) blur(6px);
+  border-top:1px solid #e5e7eb;
+  padding:8px 14px; text-align:center; font-size:12px; color:#334155;
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <img src="sabor.png" alt="Sabor pra Levar">
+  </div>
+  <div class="header-note">Feche o pedido e peça: <b>“Encoste seu cartão”</b></div>
+</header>
+
+<main>
+  <div class="grid">
+    <section class="card cardapio">
+      <h2>Cardápio</h2>
+      <div class="body" id="listaProdutos"></div>
+    </section>
+
+    <section class="card pedido">
+      <h2>Pedido atual</h2>
+      <div class="body">
+        <div class="row" style="margin-bottom:8px">
+          <button class="btn danger btn-min" id="btnLimpar" data-emoji="🍟" onclick="withLoading(this, limparPedido)">Limpar</button>
+          <span class="header-note" style="color:#334155">Operador (opcional):</span>
+          <input id="operador" placeholder="Nome do caixa" style="flex:1; padding:8px 10px; border:1px solid #e5e7eb; border-radius:10px">
+        </div>
+        <table id="tbl">
+          <thead><tr><th>Produto</th><th>Qtd</th><th>Unit (R$)</th><th>Total (R$)</th><th></th></tr></thead>
+          <tbody id="linhas"></tbody>
+          <tfoot><tr><td colspan="3">Total do Pedido</td><td id="total">0,00</td><td></td></tr></tfoot>
+        </table>
+        <div style="margin-top:12px" class="row">
+          <button class="btn primary" id="btnFechar" data-emoji="🍔" onclick="withLoading(this, abrirTap)">Fechar conta</button>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<!-- Modal: Encostar cartão -->
+<div class="overlay" id="tapModal">
+  <div class="box">
+    <div class="topbar">Encostar cartão</div>
+    <div class="content">
+      <p class="muted" style="margin-bottom:12px">O leitor (modo teclado) digita o código automaticamente. Se preferir, digite manualmente.</p>
+      <input class="tag-input" id="tagUID" autocomplete="off">
+      <div class="row" style="gap:12px">
+        <input id="tagManual" placeholder="TagUID (manual opcional)" style="flex:1; padding:12px; border:1px solid var(--lime-border); border-radius:10px; background:#ffffff; color:#064e3b">
+        <button class="btn ok" id="btnConfirmTap" data-emoji="🍔" onclick="withLoading(this, confirmarTap)">Confirmar</button>
+        <button class="btn" data-emoji="🥤" onclick="withLoading(this, fecharTap)">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Reposição -->
+<div class="overlay" id="repModal">
+  <div class="box">
+    <div class="topbar">Reposição de Estoque</div>
+    <div class="content">
+      <p class="muted" style="margin-bottom:12px">Informe as quantidades recebidas para cada produto e confirme.</p>
+      <div id="listaReposicao"></div>
+      <div class="row" style="margin-top:12px">
+        <input id="repObs" placeholder="Observação (ex.: Compra fornecedor)" style="flex:1; padding:10px; border:1px solid var(--lime-border); border-radius:10px; background:#ffffff; color:#064e3b">
+        <button class="btn ok" id="btnConfirmRep" data-emoji="🥐" onclick="withLoading(this, confirmarReposicao)">Confirmar</button>
+        <button class="btn" data-emoji="🥤" onclick="withLoading(this, fecharReposicao)">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Sucesso (mostra nome) -->
+<div class="success" id="successModal">
+  <div class="card">
+    <div class="topbar" id="sucTop">Sucesso</div>
+    <div class="body">
+      <h3 id="sucTitulo" style="margin:0 0 6px 0; font-size:28px;">Obrigado pela compra 😄</h3>
+      <p id="sucPedido"></p>
+      <p id="sucTotal"></p>
+      <div style="display:flex;justify-content:flex-end;margin-top:14px">
+        <button class="btn primary" id="btnOkSuc" data-emoji="🍔" onclick="withLoading(this, fecharSucesso)">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Progress global -->
+<div class="progress" id="progress"><div class="spinner"></div></div>
+
+<footer>Desenvolvido por Alexandre Cavalcante</footer>
+
+<script>
+let PRODUTOS = [];          // {sku,nome,preco,estoqueMin,...}
+let SALDO = {};             // sku -> saldo numérico
+let CARRINHO = new Map();   // sku -> {sku,nome,preco,qtd}
+
+/* utils */
+function money(n){ return (n||0).toFixed(2).replace('.',','); }
+function showProgress(v){ document.getElementById('progress').style.display = v ? 'grid' : 'none'; }
+function setBtnLoading(btn, loading){
+  if (!btn) return;
+  btn.disabled = !!loading;
+  btn.classList.toggle('loading', !!loading);
+}
+/* ripple + spinner lanche */
+function withLoading(btn, fn){
+  try{
+    btn.addEventListener('click', (e)=>{
+      btn.style.setProperty('--x', e.offsetX+'px');
+      btn.style.setProperty('--y', e.offsetY+'px');
+    }, { once:true });
+
+    setBtnLoading(btn, true);
+    const r = fn();
+    if (r && typeof r.then === 'function'){
+      r.finally(()=>setBtnLoading(btn,false));
+    } else {
+      setBtnLoading(btn,false);
+    }
+  }catch(e){
+    setBtnLoading(btn,false);
+    throw e;
+  }
+}
+
+/* render */
+function renderProdutos(){
+  const el = document.getElementById('listaProdutos'); el.innerHTML = '';
+  PRODUTOS.forEach(p=>{
+    const saldo = SALDO[p.sku] || 0;
+    const abaixo = Number(saldo) < Number(p.estoqueMin||0);
+    const row = document.createElement('div'); row.className = 'prod';
+    row.innerHTML = `
+      <div style="text-align:left">
+        <div><strong>${p.nome}</strong>${abaixo ? '<span class="badge warn">⚠️ abaixo do mínimo</span>' : ''}</div>
+        <div class="muted">SKU ${p.sku} • R$ ${money(p.preco)} • Estoque: ${saldo} (mín: ${p.estoqueMin||0})</div>
+      </div>
+      <div class="qty">
+        <button class="btn warn btn-min" data-emoji="🍟" onclick="withLoading(this, ()=>dec('${p.sku}'))">−</button>
+        <span id="q_${p.sku}" style="min-width:28px; text-align:center">0</span>
+        <button class="btn ok btn-min" data-emoji="🍟" onclick="withLoading(this, ()=>inc('${p.sku}'))">+</button>
+        <button class="btn info" data-emoji="🥐" onclick="withLoading(this, ()=>add('${p.sku}'))">Adicionar</button>
+      </div>`;
+    el.appendChild(row);
+  });
+}
+
+function atualizarTabela(){
+  const tb = document.getElementById('linhas'); tb.innerHTML = '';
+  let total = 0;
+  for (const [sku, it] of CARRINHO.entries()){
+    const tot = it.preco * it.qtd; total += tot;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${it.nome}</td><td>${it.qtd}</td><td>${money(it.preco)}</td><td>${money(tot)}</td>
+      <td><button class="btn danger btn-min" data-emoji="🍟" onclick="withLoading(this, ()=>rem('${sku}'))">remover</button></td>`;
+    tb.appendChild(tr);
+  }
+  document.getElementById('total').textContent = money(total);
+}
+
+/* carrinho */
+function add(sku){
+  const p = PRODUTOS.find(x=>x.sku===sku); if (!p) return;
+  const span = document.getElementById('q_'+sku);
+  const qtd = parseInt(span.textContent,10)||0; if (qtd<=0) return;
+  const cur = CARRINHO.get(sku) || { sku, nome:p.nome, preco:p.preco, qtd:0 };
+  cur.qtd += qtd; CARRINHO.set(sku,cur); span.textContent='0'; atualizarTabela();
+}
+function inc(sku){ const el=document.getElementById('q_'+sku); el.textContent=(parseInt(el.textContent,10)||0)+1; }
+function dec(sku){ const el=document.getElementById('q_'+sku); el.textContent=Math.max(0,(parseInt(el.textContent,10)||0)-1); }
+function rem(sku){ CARRINHO.delete(sku); atualizarTabela(); }
+function limparPedido(){ CARRINHO.clear(); atualizarTabela(); }
+
+/* venda (TAG) */
+function abrirTap(){
+  if (CARRINHO.size===0){ alert('Adicione itens primeiro.'); return; }
+  document.getElementById('tapModal').style.display='grid';
+  const hidden = document.getElementById('tagUID'); hidden.value=''; hidden.focus();
+}
+function fecharTap(){ document.getElementById('tapModal').style.display='none'; }
+document.addEventListener('keydown', ev=>{
+  if (document.getElementById('tapModal').style.display==='grid' && ev.key==='Enter'){ confirmarTap(); }
+});
+
+function confirmarTap(){
+  const hid = document.getElementById('tagUID').value.trim();
+  const manual = document.getElementById('tagManual').value.trim();
+  const tag = (manual || hid).toUpperCase();
+  if (!tag){ alert('Aproxime o cartão ou digite o UID.'); return; }
+  const itens = Array.from(CARRINHO.values()).map(i=>({sku:i.sku,qtd:i.qtd}));
+  const operador = document.getElementById('operador').value.trim();
+
+  showProgress(true);
+  return google.script.run
+    .withSuccessHandler(res=>{
+      showProgress(false);
+      if (res && res.ok){
+        fecharTap();
+
+        // pega nome do comprador (se o backend enviar)
+        const nomeComprador = res.nome || res.nomeComprador || '';
+        mostrarSucesso(res.pedidoID, res.totalPedido, 'compra', nomeComprador);
+
+        limparPedido();
+        carregar();
+      } else { alert('Não foi possível fechar o pedido.'); }
+    })
+    .withFailureHandler(err=>{
+      showProgress(false);
+      alert('Erro: ' + (err && err.message ? err.message : err));
+    })
+    .apiFecharConta({itens, operador, tagUID: tag});
+}
+
+/* reposição */
+function abrirReposicao(){
+  document.getElementById('repModal').style.display='grid';
+  renderReposicao();
+}
+function fecharReposicao(){ document.getElementById('repModal').style.display='none'; }
+function renderReposicao(){
+  const box = document.getElementById('listaReposicao'); box.innerHTML='';
+  PRODUTOS.forEach(p=>{
+    const line = document.createElement('div'); line.className='prod';
+    line.innerHTML = `
+      <div style="text-align:left">
+        <div><strong>${p.nome}</strong></div>
+        <div class="muted">SKU ${p.sku} • Estoque atual: ${SALDO[p.sku]||0} • Mín: ${p.estoqueMin||0}</div>
+      </div>
+      <div class="qty">
+        <input id="in_${p.sku}" type="number" min="0" step="1" value="0" style="width:120px; padding:10px; border:1px solid var(--cardapio-bd); border-radius:10px; background:#fff; color:#064e3b">
+      </div>`;
+    box.appendChild(line);
+  });
+}
+function confirmarReposicao(){
+  const itens = [];
+  PRODUTOS.forEach(p=>{
+    const v = Number(document.getElementById('in_'+p.sku).value||0);
+    if (v>0) itens.push({sku:p.sku,qtd:v});
+  });
+  if (!itens.length){ alert('Informe quantidades para pelo menos um produto.'); return; }
+  const obs = document.getElementById('repObs').value.trim() || 'Reposição';
+
+  showProgress(true);
+  return google.script.run
+    .withSuccessHandler(res=>{
+      showProgress(false);
+      if (res && res.ok){
+        fecharReposicao();
+        mostrarSucesso('Operação concluída', 0, 'reposicao', '');
+        carregar();
+      } else { alert('Falha ao registrar reposição.'); }
+    })
+    .withFailureHandler(err=>{
+      showProgress(false); alert('Erro: ' + (err?.message||err));
+    })
+    .apiDarEntrada({itens, obs});
+}
+
+/* sucesso: agora aceita nome */
+function mostrarSucesso(info1, total, tipo, nome){
+  const modal = document.getElementById('successModal');
+  const top = document.getElementById('sucTop');
+  const titulo = document.getElementById('sucTitulo');
+  const p1 = document.getElementById('sucPedido');
+  const p2 = document.getElementById('sucTotal');
+
+  if (tipo === 'reposicao') {
+    top.textContent = 'Reposição';
+    titulo.textContent = 'Estoque ajustado';
+    p1.textContent = typeof info1 === 'string' ? info1 : 'Reposição registrada';
+    p2.textContent = '';
+  } else {
+    top.textContent = 'Compra';
+    const quem = nome ? `, ${nome}` : '';
+    titulo.textContent = `Obrigado pela compra 😄${quem}`;
+    p1.textContent = `Pedido: ${info1}`;
+    p2.textContent = `Valor total: R$ ${Number(total||0).toFixed(2).replace('.',',')}`;
+  }
+  modal.style.display = 'grid';
+}
+function fecharSucesso(){ document.getElementById('successModal').style.display='none'; }
+
+/* boot */
+function carregar(){
+  showProgress(true);
+  return google.script.run
+    .withSuccessHandler(list=>{
+      PRODUTOS = list || [];
+      return google.script.run
+        .withSuccessHandler(saldo=>{
+          SALDO = saldo || {};
+          renderProdutos();
+          atualizarTabela();
+          showProgress(false);
+        })
+        .withFailureHandler(err=>{
+          showProgress(false); alert('Erro em saldo: '+(err?.message||err));
+        })
+        .apiGetSaldoAtual();
+    })
+    .withFailureHandler(err=>{
+      showProgress(false); alert('Erro ao carregar produtos: '+(err?.message||err));
+    })
+    .apiListarProdutos();
+}
+window.onload = carregar;
+</script>
+</body>
+</html>
