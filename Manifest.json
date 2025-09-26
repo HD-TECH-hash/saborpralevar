@@ -1,0 +1,12 @@
+{
+  "name": "Sabor pra Levar",
+  "short_name": "Sabor",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#531b61",
+  "theme_color": "#531b61",
+  "icons": [
+    { "src": "sabor.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "sabor.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
