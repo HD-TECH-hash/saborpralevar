@@ -460,7 +460,6 @@ async function confirmarPagamento(uidOpt){
     $('pagamentoModal').style.display='none';
     CARRINHO.clear(); renderPedido();
     toast('Obrigado pela compra 😄');
-    // tenta atualizar saldo (se GAS expuser; senão, segue sem badge)
     try{ await carregarSaldoSafe(); renderProdutos(); }catch(_){}
   } else {
     toast(res?.msg || 'Não foi possível fechar o pedido');
@@ -481,20 +480,46 @@ async function carregarProdutos(){
     throw new Error(res?.msg || 'Erro ao listar produtos');
   }
 }
+
+/* === FIX do SALDO (normaliza e valida) === */
 async function carregarSaldoSafe(){
-  // tenta 'saldo'; se o GAS não tiver esse endpoint, ignora sem erro
   const r = await jsonp(API_BRIDGE_URL + '?action=saldo');
-  if (r && r.ok && (r.saldo || r.data)){
-    SALDO = r.saldo || r.data;
-  } else {
-    SALDO = null; // oculta badges
+  console.log('saldo endpoint →', r);
+  if (!r || r.ok !== true) {
+    throw new Error(r?.msg || 'Endpoint "saldo" não respondeu ok');
   }
+  const raw = (r.saldo !== undefined) ? r.saldo : r.data;
+
+  if (raw === undefined || raw === null) {
+    throw new Error('Resposta do "saldo" sem dados');
+  }
+
+  // Aceita objeto direto { SKU: qtd } ou array de objetos e normaliza
+  let obj = {};
+  if (Array.isArray(raw)) {
+    raw.forEach(it=>{
+      const sku = String(it?.sku ?? it?.SKU ?? '').trim();
+      const est = Number(it?.estoque ?? it?.Estoque ?? it?.estoqueAtual ?? it?.EstoqueAtual ?? 0);
+      if (sku) obj[sku] = est;
+    });
+  } else if (typeof raw === 'object') {
+    Object.keys(raw).forEach(k=> obj[k] = Number(raw[k]||0));
+  } else {
+    throw new Error('Formato de "saldo" inválido');
+  }
+
+  SALDO = obj;
 }
+
 async function carregarTudo(){
   loading(true);
   try{
     await carregarProdutos();
-    try{ await carregarSaldoSafe(); }catch(_){ SALDO = null; }
+    try{ await carregarSaldoSafe(); }catch(e){
+      SALDO = null;
+      console.warn(e);
+      toast('Saldo indisponível no momento');
+    }
     renderProdutos();
   }catch(e){
     toast(e.message || e);
@@ -511,6 +536,7 @@ async function atualizarSaldo(){
     renderProdutos();
     toast('Saldo atualizado');
   }catch(e){
+    console.warn(e);
     toast('Não foi possível atualizar o saldo');
   }finally{
     loading(false);
@@ -520,7 +546,6 @@ async function atualizarSaldo(){
 /* Init */
 window.onload = ()=>{
   carregarTudo();
-  // UID via querystring
   const q = new URLSearchParams(location.search);
   const uid = (q.get('tagUID') || q.get('uid') || '').toUpperCase();
   if (uid){ abrirPagamento(); $('tagManual').value = uid; }
