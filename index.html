@@ -67,9 +67,11 @@ footer{padding:20px 16px;text-align:center;color:#fff;background:var(--purple);m
 <div id="toast" class="toast"></div>
 
 <script>
-// ======= CONFIGURE SEU GAS AQUI =======
-const GAS_URL = "https://script.google.com/macros/s/SEU_ID_DO_GAS/exec";
-// ======================================
+<!-- ======= CONFIGURE SEU GAS AQUI ======= -->
+<script>
+const GAS_URL = "https://script.google.com/macros/s/AKfycbyEgh6FXUtdR0YrE-15KqpLMhsSIQT1dj1Cmfwy1Sf8fuhwNlGHObeiOqS9GfMXS4imnA/exec";
+</script>
+<!-- ====================================== -->
 
 const $ = (id)=>document.getElementById(id);
 const toast = (m)=>{ const t=$("toast"); t.textContent=m; t.style.display="block"; setTimeout(()=>t.style.display="none",2500); };
