@@ -1,74 +1,127 @@
 <!doctype html>
 <html lang="pt-br">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Sabor pra Levar — NFC</title>
-
-  <meta http-equiv="Cache-Control" content="no-store, max-age=0, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
-
-  <link rel="manifest" href="manifest.webmanifest">
-  <meta name="theme-color" content="#531b61">
-  <link rel="apple-touch-icon" href="sabor.png">
-
-  <style>
-    :root{ --bg:#f3f7f9; --purple:#531b61; --green:#a9c09b; --card:#fff; --ink:#0b1324; --muted:#6b7280; }
-    *{box-sizing:border-box}
-    body{margin:0;background:linear-gradient(0deg,#f7fafc,#f3f7f9);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter}
-    header{background:var(--purple);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:12px}
-    header img{height:40px;width:auto}
-    header h1{font-size:18px;margin:0;font-weight:800}
-    main{max-width:560px;margin:18px auto;padding:0 12px}
-    .card{background:var(--card);border-radius:16px;box-shadow:0 18px 40px rgba(18,36,22,.06);border:1px solid #eef2f6;padding:18px}
-    h2{margin:0 0 12px 0;font-size:24px;color:#2a1344}
-    p{margin:8px 0;color:var(--muted)}
-    .row{display:flex;gap:10px}
-    input{width:100%;padding:12px;border:1px solid #e5e7eb;border-radius:12px;font-size:16px}
-    .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:14px;padding:14px 16px;font-weight:800;cursor:pointer}
-    .btn.primary{background:var(--purple);color:#fff;box-shadow:0 8px 18px rgba(83,27,97,.18)}
-    .btn.soft{background:var(--green);color:#052e1b}
-    .btn:active{transform:translateY(1px)}
-    footer{padding:20px 16px;text-align:center;color:#fff;background:var(--purple);margin-top:24px;font-weight:700}
-    .note{font-size:13px;color:#6b7280}
-    .hide{display:none !important}
-    .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:20px;background:#d9f99d;color:#052e1b;padding:10px 14px;border-radius:12px;box-shadow:0 10px 30px rgba(2,6,23,.2);display:none}
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sabor pra Levar — PDV (GitHub)</title>
+<style>
+:root{
+  --bg:#f3f7f9; --purple:#531b61; --green:#a9c09b; --card:#fff; --ink:#0b1324; --muted:#6b7280;
+  --ok:#16a34a; --danger:#ef4444;
+}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(0deg,#f7fafc,#f3f7f9);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter}
+header{background:var(--purple);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:12px;justify-content:space-between}
+header img{height:40px;width:auto}
+main{max-width:1120px;margin:18px auto;padding:0 12px}
+.grid{display:grid;grid-template-columns:1.2fr .8fr;gap:20px}
+@media (max-width:900px){ .grid{grid-template-columns:1fr; } }
+.card{background:var(--card);border:1px solid #eef2f6;border-radius:16px;box-shadow:0 18px 40px rgba(18,36,22,.06);overflow:hidden}
+.card h2{margin:0;padding:14px 16px;border-bottom:1px solid #f1f5f9;color:var(--purple)}
+.card .body{padding:14px}
+.prod{display:flex;justify-content:space-between;align-items:center;padding:10px;border-bottom:1px dashed #eef2f7}
+.prod:last-child{border-bottom:none}
+.muted{color:var(--muted);font-size:13px}
+.qty{display:flex;gap:10px;align-items:center}
+.btn{border:none;border-radius:12px;padding:10px 14px;font-weight:800;cursor:pointer}
+.btn.primary{background:var(--purple);color:#fff;box-shadow:0 8px 18px rgba(83,27,97,.18)}
+.btn.ok{background:var(--ok);color:#fff}
+.btn.danger{background:var(--danger);color:#fff}
+.btn.menu{background:var(--green);color:#041a0f}
+.btn:active{transform:translateY(1px)}
+table{width:100%;border-collapse:collapse}
+th,td{padding:10px;border-bottom:1px solid #f1f5f9;text-align:left}
+tfoot td{font-weight:800}
+.overlay{position:fixed;inset:0;display:none;place-items:center;background:rgba(2,6,23,.45);z-index:50}
+.modal{width:min(680px,96vw);border-radius:16px;overflow:hidden;background:#fff;box-shadow:0 30px 70px rgba(2,8,23,.35)}
+.modal .top{padding:16px 18px;background:var(--purple);color:#fff;font-weight:900}
+.modal .content{padding:16px 18px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:20px;background:#d9f99d;color:#052e1b;padding:10px 14px;border-radius:12px;box-shadow:0 10px 30px rgba(2,6,23,.2);display:none;z-index:60}
+.loading{position:fixed;inset:0;display:none;place-items:center;background:rgba(255,255,255,.6);z-index:60}
+.burger{font-size:56px;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
 </head>
 <body>
-  <header>
+<header>
+  <div style="display:flex;gap:12px;align-items:center">
     <img src="sabor.png" alt="Sabor pra Levar">
-    <h1>Sabor pra Levar — NFC</h1>
-  </header>
+    <strong>PDV — GitHub</strong>
+  </div>
+  <div style="display:flex;gap:8px">
+    <button class="btn menu" onclick="abrirCadastro()">+ Novo produto</button>
+    <button class="btn menu" onclick="abrirReposicao()">Reposição</button>
+  </div>
+</header>
 
-  <main>
-    <div class="card">
-      <h2>Pagamento por cartão NFC</h2>
-      <p>Abra o PDV, monte o pedido e, no fechamento, aproxime a TAG.</p>
-
-      <div class="row" style="margin-top:8px">
-        <button id="btnAbrir" class="btn primary" style="flex:1">Abrir PDV</button>
-      </div>
-
-      <div id="nfcBlock" class="row hide" style="margin-top:10px">
-        <button id="btnNFC" class="btn soft" style="flex:1">📶 Ler TAG (NFC)</button>
-      </div>
-
-      <div style="margin-top:10px">
-        <input id="uid" maxlength="32" placeholder="UID manual (ex: 0434203AEC4C81)">
-        <div class="row" style="margin-top:10px">
-          <button id="btnUID" class="btn primary" style="flex:1">Abrir PDV com UID</button>
+<main>
+  <div class="grid">
+    <section class="card">
+      <h2>Cardápio</h2>
+      <div class="body" id="listaProdutos" style="max-height:70vh;overflow:auto"></div>
+    </section>
+    <section class="card">
+      <h2>Pedido atual</h2>
+      <div class="body">
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px">
+          <button class="btn danger" onclick="limpar()">Limpar</button>
+          <input id="operador" placeholder="Operador (opcional)" style="flex:1;border:1px solid #e6eef6;border-radius:10px;padding:10px">
         </div>
-        <p class="note">Dica: adicione esta página à tela inicial para usar como app.</p>
+        <table>
+          <thead><tr><th>Produto</th><th>Qtd</th><th>Unit (R$)</th><th>Total (R$)</th><th></th></tr></thead>
+          <tbody id="linhas"></tbody>
+          <tfoot><tr><td colspan="3">Total do Pedido</td><td id="total">0,00</td><td></td></tr></tfoot>
+        </table>
+        <div style="display:flex;gap:8px;margin-top:12px;align-items:center">
+          <input id="uidManual" placeholder="UID (iPhone: digite ou use link da TAG)" style="flex:1;border:1px solid #e6eef6;border-radius:10px;padding:10px">
+          <button class="btn ok" onclick="scanNFC()">📶 NFC</button>
+          <button class="btn primary" onclick="fecharConta()">Fechar conta</button>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<!-- Cadastro -->
+<div class="overlay" id="cadModal">
+  <div class="modal">
+    <div class="top">Cadastrar produto</div>
+    <div class="content">
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <input id="cad_sku" placeholder="SKU">
+        <input id="cad_nome" placeholder="Nome do produto">
+        <input id="cad_preco" placeholder="Preço unitário (ex: 8.50)">
+        <input id="cad_qtd" placeholder="Estoque inicial (opcional)">
+        <input id="cad_min" placeholder="Estoque mínimo (opcional)">
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:10px">
+        <button class="btn" onclick="fecharCadastro()">Cancelar</button>
+        <button class="btn primary" onclick="salvarProduto()">Salvar</button>
       </div>
     </div>
-  </main>
+  </div>
+</div>
 
-  <footer>Desenvolvido por Alexandre Cavalcante</footer>
-  <div id="toast" class="toast"></div>
+<!-- Reposição -->
+<div class="overlay" id="repModal">
+  <div class="modal">
+    <div class="top">Reposição de estoque</div>
+    <div class="content">
+      <div style="display:flex;gap:8px">
+        <input id="rep_sku" placeholder="SKU" style="flex:1">
+        <input id="rep_qtd" placeholder="Quantidade" style="width:160px">
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:10px">
+        <button class="btn" onclick="fecharReposicao()">Cancelar</button>
+        <button class="btn ok" onclick="confirmarReposicao()">Ajustar</button>
+      </div>
+    </div>
+  </div>
+</div>
 
-  <!-- JS externo com versionamento p/ quebrar cache -->
-  <script src="app.js?v=3"></script>
+<div id="toast" class="toast"></div>
+<div id="loading" class="loading"><div class="burger">🍔</div></div>
+
+<script src="app.js?v=10"></script>
 </body>
 </html>
