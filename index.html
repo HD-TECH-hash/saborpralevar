@@ -27,7 +27,7 @@
     .btn.soft{background:var(--green);color:#052e1b}
     .btn:active{transform:translateY(1px)}
     footer{padding:20px 16px;text-align:center;color:#fff;background:var(--purple);margin-top:24px;font-weight:700}
-    .note{font-size:13px;color:var(--muted)}
+    .note{font-size:13px;color:#6b7280}
     .hide{display:none !important}
     .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:20px;background:#d9f99d;color:#052e1b;padding:10px 14px;border-radius:12px;box-shadow:0 10px 30px rgba(2,6,23,.2);display:none}
   </style>
@@ -72,10 +72,28 @@
     const $ = (id)=>document.getElementById(id);
     const toast = (m)=>{ const t=$("toast"); t.textContent=m; t.style.display="block"; setTimeout(()=>t.style.display="none",2500); };
 
-    // PWA (opcional)
+    // 🔧 MODO RESET (use uma vez abrindo com ?reset=1)
+    (async function maybeReset(){
+      const p = new URLSearchParams(location.search);
+      if (p.get("reset")==="1"){
+        try{
+          if ('serviceWorker' in navigator){
+            const regs = await navigator.serviceWorker.getRegistrations();
+            regs.forEach(r=>r.unregister());
+          }
+          if (window.caches){
+            const keys = await caches.keys();
+            await Promise.all(keys.map(k=>caches.delete(k)));
+          }
+          sessionStorage.setItem("reset-done","1");
+        }catch(e){}
+      }
+    })();
+
+    // PWA (deixa, mas se quiser testar sem cache, comente a linha abaixo por um momento)
     if ("serviceWorker" in navigator){ navigator.serviceWorker.register("./sw.js").catch(()=>{}); }
 
-    // Ações
+    // Botões principais
     $("btnAbrir").onclick = ()=> window.location.href = GAS_URL;
 
     $("btnUID").onclick = ()=>{
@@ -84,9 +102,9 @@
       window.location.href = GAS_URL + "?tagUID=" + encodeURIComponent(uid);
     };
 
-    // WebNFC (Android/Chrome) — no iPhone fica oculto
+    // WebNFC (Android/Chrome) — no iPhone fica oculto (sem erro chato)
     (async function initNFC(){
-      if (!("NDEFReader" in window)) return;    // iOS: sem suporte, não mostra botão
+      if (!("NDEFReader" in window)) return;
       $("nfcBlock").classList.remove("hide");
       $("btnNFC").onclick = async ()=>{
         try{
@@ -102,7 +120,7 @@
       };
     })();
 
-    // Se acessar com ?tagUID=XYZ (ex: via atalho/URL do iPhone), repassa direto
+    // Pass-through: se vier já com ?tagUID=XYZ
     (function passThrough(){
       const p = new URLSearchParams(location.search);
       const uid = (p.get("tagUID") || p.get("uid") || "").toUpperCase();
