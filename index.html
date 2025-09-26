@@ -3,153 +3,417 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sabor pra Levar — PDV Mobile</title>
-
-<link rel="manifest" href="manifest.webmanifest">
+<title>Sabor pra Levar — PDV (Mobile)</title>
 <meta name="theme-color" content="#531b61">
 <link rel="apple-touch-icon" href="sabor.png">
 
 <style>
 :root{
-  --bg:#f3f7f9;
   --purple:#531b61;
   --green:#a9c09b;
-  --lime:#d9f99d;
-  --card:#fff;
   --ink:#0b1324;
   --muted:#6b7280;
+  --card:#ffffff;
+  --bg:#f3f7f9;
   --danger:#ef4444;
   --ok:#16a34a;
+  --lime:#d9f99d;
+  --orange:#ff8c42;            /* CADASTRO (laranja) */
+  --orange-soft:#fff0e6;
+  --turq:#6ee7e7;              /* REPOSIÇÃO (turquesa clara) */
+  --turq-soft:#e6fbfb;
 }
 *{box-sizing:border-box}
 html,body{height:100%}
-body{margin:0;background:linear-gradient(0deg,#f7fafc,#f3f7f9);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter}
-
-/* topo */
-header{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;background:var(--purple);color:#fff;box-shadow:0 6px 16px rgba(0,0,0,.08)}
-header img{height:40px;width:auto;border-radius:8px}
-
-/* container */
-main{max-width:640px;margin:16px auto;padding:0 12px 96px}
-.card{background:var(--card);border:1px solid #eef2f6;border-radius:16px;box-shadow:0 18px 40px rgba(18,36,22,.06);padding:14px 14px 8px;margin-bottom:14px}
-h2{margin:6px 0 12px 4px;color:var(--purple);font-size:18px}
-
-/* lista produtos */
-#listaProdutos .item{display:flex;justify-content:space-between;align-items:center;border-bottom:1px dashed #eef2f6;padding:10px 6px}
-#listaProdutos .item:last-child{border-bottom:none}
-#listaProdutos .title{font-weight:800}
-#listaProdutos .muted{color:var(--muted);font-size:12px}
-
-.qty{display:flex;align-items:center;gap:8px}
-.btn{border:1px solid #e5e7eb;background:#fff;border-radius:12px;padding:10px 12px;font-weight:800;cursor:pointer}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter;color:var(--ink);
+     background:linear-gradient(0deg,#f7fafc,#f3f7f9);}
+header{padding:18px 16px; display:flex; flex-direction:column; align-items:center; gap:10px;}
+header img{height:84px;width:auto}
+h1{margin:0; font-size:18px; color:var(--purple); font-weight:900}
+.actions{display:flex; gap:10px; width:100%; max-width:680px; justify-content:center; flex-wrap:wrap}
+.btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; border:none; border-radius:14px; padding:12px 16px; font-weight:800; cursor:pointer; transition:transform .12s}
 .btn:active{transform:translateY(1px)}
-.btn.primary{background:var(--purple);color:#fff;border-color:transparent;box-shadow:0 8px 18px rgba(169,192,155,.45)}
-.btn.ok{background:var(--ok);color:#fff;border-color:transparent}
-.btn.danger{background:var(--danger);color:#fff;border-color:transparent}
-.btn.soft{background:var(--green);color:#041a09;border-color:transparent}
-.btn.block{display:block;width:100%}
-.btn.small{padding:6px 10px;border-radius:10px}
+.btn.primary{background:var(--purple); color:#fff; box-shadow:0 8px 18px rgba(83,27,97,.18)}
+.btn.menu{background:var(--green); color:#0a0a0a}
+.btn.danger{background:var(--danger); color:#fff}
+.btn.ok{background:var(--ok); color:#fff}
+main{max-width:760px; margin:8px auto 80px; padding:0 12px}
+.card{background:var(--card); border-radius:16px; box-shadow:0 18px 40px rgba(18,36,22,.06); border:1px solid #eef2f6; overflow:hidden}
+.card h2{margin:0; padding:14px 16px; font-size:18px; color:var(--purple); border-bottom:1px solid #f1f5f9}
+.card .body{padding:12px}
+.grid{display:grid; gap:12px}
+@media(min-width:720px){ .grid{ grid-template-columns: 1.1fr .9fr; } }
+.prod{display:flex; justify-content:space-between; align-items:center; padding:12px; border-bottom:1px dashed #eef2f7}
+.prod:last-child{border-bottom:none}
+.muted{color:var(--muted); font-size:13px}
+.qty{display:flex; gap:8px; align-items:center}
+.btn-min{padding:8px 12px; border:1px solid #e6eef6; background:#fff; border-radius:12px; font-weight:800}
+input, select{padding:10px; border:1px solid #e6eef6; border-radius:10px; font-size:16px; min-height:40px}
+table{width:100%; border-collapse:collapse}
+th,td{padding:10px; border-bottom:1px solid #f1f5f9; text-align:left; font-size:14px}
+tfoot td{font-weight:800}
+#listaProdutos{max-height:60vh; overflow:auto}
 
-table{width:100%;border-collapse:collapse}
-th,td{border-bottom:1px solid #eef2f6;padding:10px 6px;text-align:left;font-size:14px}
-tfoot td{font-weight:900}
+/* Overlays */
+.overlay{position:fixed; inset:0; display:none; place-items:center; background:rgba(2,6,23,.45); z-index:50}
+.modal{width:min(720px,96vw); border-radius:16px; overflow:hidden; box-shadow:0 30px 70px rgba(2,8,23,.35)}
+.modal .top{padding:16px 18px; color:#fff; font-weight:900}
+.modal .content{padding:14px 16px}
 
-footer{position:fixed;left:0;right:0;bottom:0;background:var(--purple);color:#fff;padding:10px 14px;text-align:center;font-weight:800}
+/* Cadastro (laranja) */
+.modal.orange .top{background:var(--orange)}
+.modal.orange .content{background:var(--orange-soft)}
 
-/* overlay / modal */
-.overlay{position:fixed;inset:0;display:none;place-items:center;background:rgba(2,6,23,.45);z-index:200}
-.modal{width:min(640px,94vw);background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,.35)}
-.modal .top{padding:16px 18px;color:#fff;font-weight:900}
-.modal .content{padding:16px 18px}
-.modal .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+/* Reposição (turquesa) */
+.modal.turq .top{background:var(--turq); color:#05333a}
+.modal.turq .content{background:var(--turq-soft)}
 
-/* modais temáticos */
-.modal.purple .top{background:var(--purple)}
-.modal.purple .content{background:#faf5ff;color:#2b0b56}
-.modal.lime .top{background:linear-gradient(90deg,#7ee787,#b6f18c);color:#05350a}
-.modal.lime .content{background:var(--lime);color:#052e1b}
+/* Pagamento (lime) */
+.modal.lime .top{background:linear-gradient(90deg,#7ee787,#b6f18c); color:#05350a}
+.modal.lime .content{background:var(--lime)}
 
-/* toast & loading */
-.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;background:var(--lime);color:#052e1b;padding:10px 14px;border-radius:12px;box-shadow:0 10px 30px rgba(2,6,23,.2);display:none;z-index:300;font-weight:800}
-.loading{position:fixed;inset:0;display:none;place-items:center;background:rgba(255,255,255,.6);z-index:260}
-.spinner{font-size:44px;animation:spin 1s linear infinite}
+/* Toast e Loading */
+.toast{position:fixed; left:50%; transform:translateX(-50%); bottom:18px; background:#d9f99d; color:#052e1b; padding:10px 14px; border-radius:12px; box-shadow:0 10px 30px rgba(2,6,23,.2); display:none; z-index:100}
+.loading{position:fixed; inset:0; display:none; place-items:center; background:rgba(255,255,255,.65); z-index:80}
+.burger{width:84px; height:84px; display:grid; place-items:center; font-size:44px; animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.hide{display:none!important}
+
+/* Rodapé menor */
+footer{position:fixed; left:0; right:0; bottom:0; text-align:center; padding:8px 10px; background:#fff; color:#6b7280; font-size:12px; border-top:1px solid #e5e7eb}
 </style>
 </head>
 <body>
+
 <header>
   <img src="sabor.png" alt="Sabor pra Levar">
-  <div style="display:flex;gap:8px">
-    <button class="btn soft" id="btnNovo">+ Novo produto</button>
-    <button class="btn soft" id="btnReposicao">Reposição</button>
+  <h1>Sabor pra Levar — PDV</h1>
+  <div class="actions">
+    <button class="btn menu" onclick="abrirCadastro()">+ Novo produto</button>
+    <button class="btn menu" onclick="abrirReposicao()">Reposição</button>
   </div>
 </header>
 
 <main>
-  <section class="card">
-    <h2>Cardápio</h2>
-    <div id="listaProdutos"></div>
-  </section>
+  <div class="grid">
+    <!-- Cardápio -->
+    <section class="card">
+      <h2>Cardápio</h2>
+      <div class="body">
+        <div id="listaProdutos"></div>
+      </div>
+    </section>
 
-  <section class="card">
-    <h2>Pedido atual</h2>
-    <div style="display:flex;gap:8px;align-items:center;margin:6px 0 10px 0;flex-wrap:wrap">
-      <button class="btn danger" id="btnLimpar">Limpar</button>
-      <input id="operador" placeholder="Operador (opcional)" style="flex:1;min-width:220px;padding:10px;border:1px solid #e5e7eb;border-radius:10px">
-    </div>
-    <table>
-      <thead><tr><th>Produto</th><th>Qtd</th><th>Unit</th><th>Total</th><th></th></tr></thead>
-      <tbody id="linhas"></tbody>
-      <tfoot><tr><td colspan="3">Total</td><td id="total">0,00</td><td></td></tr></tfoot>
-    </table>
-    <div style="margin-top:12px">
-      <button class="btn primary block" id="btnFechar">Fechar conta</button>
-    </div>
-  </section>
+    <!-- Pedido atual -->
+    <section class="card">
+      <h2>Pedido atual</h2>
+      <div class="body">
+        <div style="display:flex; gap:8px; align-items:center; margin-bottom:10px; flex-wrap:wrap">
+          <button class="btn danger" onclick="limparPedido()">Limpar</button>
+          <input id="operador" placeholder="Operador (opcional)" style="flex:1; min-width:220px">
+        </div>
+        <table>
+          <thead><tr><th>Produto</th><th>Qtd</th><th>Unit (R$)</th><th>Total (R$)</th><th></th></tr></thead>
+          <tbody id="linhas"></tbody>
+          <tfoot><tr><td colspan="3">Total do Pedido</td><td id="total">0,00</td><td></td></tr></tfoot>
+        </table>
+        <div style="margin-top:12px">
+          <button class="btn primary" onclick="abrirPagamento()">Fechar conta</button>
+        </div>
+      </div>
+    </section>
+  </div>
 </main>
 
-<!-- Modal Reposição -->
-<div class="overlay" id="modalReposicao">
-  <div class="modal purple">
-    <div class="top">Repor estoque</div>
+<!-- Modal CADASTRO (laranja) -->
+<div class="overlay" id="cadastroModal">
+  <div class="modal orange">
+    <div class="top">Cadastrar produto</div>
     <div class="content">
-      <p style="margin:0 0 8px">Informe SKU e quantidade de entrada.</p>
-      <div style="display:flex;gap:8px">
-        <input id="rep_sku" placeholder="SKU" style="flex:1;padding:10px;border:1px solid #e5e7eb;border-radius:10px">
-        <input id="rep_qtd" placeholder="Qtd" style="width:120px;padding:10px;border:1px solid #e5e7eb;border-radius:10px">
+      <p style="margin:0 0 8px 0; font-weight:800">Cadastre aqui seu novo produto</p>
+
+      <!-- Tabela produtos existentes (só leitura) -->
+      <div style="max-height:220px; overflow:auto; border:1px solid #f1f5f9; border-radius:12px; background:#fff; margin-bottom:10px">
+        <table>
+          <thead>
+            <tr><th>SKU</th><th>Produto</th><th>Categoria</th><th>PreçoUnit</th><th>Unidade</th><th>Ativo</th><th>EstoqueMin</th></tr>
+          </thead>
+          <tbody id="cadastroLista"></tbody>
+        </table>
       </div>
-      <div class="actions">
-        <button class="btn" data-close="modalReposicao">Cancelar</button>
-        <button class="btn ok" id="btnConfirmaReposicao">Ajustar estoque</button>
+
+      <!-- Linha vazia para NOVO -->
+      <div class="card" style="padding:12px">
+        <div style="display:grid; grid-template-columns: 1fr 1.4fr 1fr 1fr 1fr .8fr 1fr; gap:8px">
+          <input id="new_sku" placeholder="SKU">
+          <input id="new_nome" placeholder="Produto">
+          <input id="new_cat" placeholder="Categoria">
+          <input id="new_preco" placeholder="PreçoUnit (ex: 7.50)">
+          <input id="new_un" placeholder="Unidade (ex: un, lata)">
+          <select id="new_ativo">
+            <option value="true">Ativo</option>
+            <option value="false">Inativo</option>
+          </select>
+          <input id="new_min" placeholder="EstoqueMin">
+        </div>
+        <div style="margin-top:10px; display:flex; justify-content:flex-end; gap:8px">
+          <button class="btn" onclick="fecharCadastro()">Cancelar</button>
+          <button class="btn ok" onclick="salvarNovoProduto()">Salvar produto</button>
+        </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Modal Pagamento -->
-<div class="overlay" id="modalPagamento">
+<!-- Modal REPOSIÇÃO (turquesa) -->
+<div class="overlay" id="reposicaoModal">
+  <div class="modal turq">
+    <div class="top">Reposição de estoque</div>
+    <div class="content">
+      <div style="max-height:300px; overflow:auto; background:#fff; border:1px solid #e5e7eb; border-radius:12px">
+        <table>
+          <thead><tr><th style="width:110px">SKU</th><th>Produto</th><th style="width:120px">Qtd +</th></tr></thead>
+          <tbody id="repoLista"></tbody>
+        </table>
+      </div>
+      <div style="margin-top:10px; display:flex; justify-content:flex-end; gap:8px">
+        <button class="btn" onclick="fecharReposicao()">Cancelar</button>
+        <button class="btn ok" onclick="confirmarReposicao()">Ajustar estoque</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal PAGAMENTO (lime) -->
+<div class="overlay" id="pagamentoModal">
   <div class="modal lime">
     <div class="top">Aproxime o cartão</div>
     <div class="content">
-      <p style="margin:0 0 8px">No iPhone: digite o UID manual. No Android/Chrome: você pode tocar em “Ler TAG (NFC)”.</p>
-      <div id="nfcRow" class="hide" style="display:flex;gap:8px;margin-bottom:8px">
-        <button class="btn soft block" id="btnNFC" style="flex:1">📶 Ler TAG (NFC)</button>
-      </div>
-      <input id="tagManual" placeholder="UID manual (ex: 0434203AEC4C81)" style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:10px">
-      <div class="actions">
-        <button class="btn" data-close="modalPagamento">Cancelar</button>
-        <button class="btn ok" id="btnPagar">Confirmar pagamento</button>
+      <p style="margin:0 0 8px 0">Aproxime a TAG NFC (Android/Chrome) ou digite o UID manualmente.</p>
+      <input id="tagManual" placeholder="TagUID (manual)" style="width:100%; margin-bottom:10px">
+      <div style="display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap">
+        <button class="btn" onclick="fecharPagamento()">Cancelar</button>
+        <button class="btn" id="btnNFC" style="display:none">📶 Ler TAG (NFC)</button>
+        <button class="btn ok" onclick="confirmarPagamento()">Confirmar pagamento</button>
       </div>
     </div>
   </div>
 </div>
 
+<div id="toast" class="toast"></div>
+<div id="loading" class="loading"><div class="burger">🍔</div></div>
+
 <footer>Desenvolvido por Alexandre Cavalcante</footer>
 
-<div id="toast" class="toast"></div>
-<div id="loading" class="loading"><div class="spinner">🍔</div></div>
+<script>
+// ====== CONFIG (use sua URL do ApiBridge) ======
+const API_BRIDGE_URL = "https://script.google.com/macros/s/AKfycbxalx7Sli3V-iNtth_ikypQd_Ix5u6Lp0zDniTIYWfREsAD0Jk0_KHR3cbe0cm3FCyFaw/exec";
+// ==============================================
 
-<script src="app.js"></script>
+/* Helpers */
+const $ = (id)=>document.getElementById(id);
+const toast = (m)=>{ const t=$('toast'); t.textContent=m; t.style.display='block'; clearTimeout(window.__tt); window.__tt=setTimeout(()=>t.style.display='none',2400); };
+const loading = (v)=> $('loading').style.display = v ? 'grid' : 'none';
+function money(n){ return (Number(n)||0).toFixed(2).replace('.',','); }
+
+/* JSONP helper */
+function jsonp(url, cbname){
+  return new Promise((resolve)=>{
+    const name = cbname || ('cb_'+Math.random().toString(36).slice(2));
+    window[name] = (data)=>{ resolve(data); setTimeout(()=>{ try{ delete window[name]; }catch(_){} },0); };
+    const s = document.createElement('script');
+    s.src = url + (url.includes('?') ? '&' : '?') + 'callback=' + name + '&_ts=' + Date.now();
+    s.onerror = ()=> resolve({ ok:false, msg:'Falha de rede' });
+    document.body.appendChild(s);
+    setTimeout(()=> s.remove(), 10000);
+  });
+}
+
+/* Estado */
+let PRODUTOS = [];
+let CARRINHO = new Map();
+
+/* Render cardápio */
+function renderProdutos(){
+  const box = $('listaProdutos'); box.innerHTML = '';
+  if (!PRODUTOS.length){ box.innerHTML = '<div class="muted">Nenhum produto ativo encontrado</div>'; return; }
+  PRODUTOS.forEach(p=>{
+    const row = document.createElement('div'); row.className='prod';
+    row.innerHTML = `
+      <div>
+        <div style="font-weight:800">${p.nome}</div>
+        <div class="muted">SKU ${p.sku}${p.categoria?(' • '+p.categoria):''} • R$ ${money(p.preco)}${p.estoqueMin?(' • Mín: '+p.estoqueMin):''}</div>
+      </div>
+      <div class="qty">
+        <button class="btn-min" onclick="dec('${p.sku}')">−</button>
+        <div id="q_${p.sku}" style="min-width:34px; text-align:center">0</div>
+        <button class="btn-min" onclick="inc('${p.sku}')">+</button>
+        <button class="btn primary" onclick="add('${p.sku}')">Adicionar</button>
+      </div>`;
+    box.appendChild(row);
+  });
+}
+
+/* Contagem */
+function inc(sku){ const el=$('q_'+sku); el.textContent=(parseInt(el.textContent||'0')||0)+1; }
+function dec(sku){ const el=$('q_'+sku); el.textContent=Math.max(0,(parseInt(el.textContent||'0')||0)-1); }
+
+/* Carrinho */
+function add(sku){
+  const p = PRODUTOS.find(x=>x.sku===sku); if(!p) return;
+  const q = parseInt(($('q_'+sku)?.textContent)||'0')||0; if (q<=0){ toast('Defina a quantidade'); return; }
+  const cur = CARRINHO.get(sku) || { sku:p.sku, nome:p.nome, preco:p.preco, qtd:0 };
+  cur.qtd += q; CARRINHO.set(sku, cur); $('q_'+sku).textContent='0'; renderPedido();
+}
+function rem(sku){ CARRINHO.delete(sku); renderPedido(); }
+function limparPedido(){ CARRINHO.clear(); renderPedido(); }
+function renderPedido(){
+  const tb = $('linhas'); tb.innerHTML=''; let total=0;
+  for (const [sku,it] of CARRINHO.entries()){
+    const tr = document.createElement('tr'); const tot = it.preco*it.qtd; total+=tot;
+    tr.innerHTML = `<td>${it.nome}</td><td>${it.qtd}</td><td>${money(it.preco)}</td><td>${money(tot)}</td>
+      <td><button class="btn danger" onclick="rem('${sku}')">remover</button></td>`;
+    tb.appendChild(tr);
+  }
+  $('total').textContent = money(total);
+}
+
+/* Cadastro (laranja) */
+function abrirCadastro(){
+  // tabela de existentes
+  const tb = $('cadastroLista'); tb.innerHTML='';
+  PRODUTOS.forEach(p=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${p.sku}</td><td>${p.nome}</td><td>${p.categoria||''}</td>
+                    <td>${money(p.preco)}</td><td>${p.unidade||''}</td><td>${p.ativo?'TRUE':'FALSE'}</td><td>${p.estoqueMin||0}</td>`;
+    tb.appendChild(tr);
+  });
+  $('cadastroModal').style.display='grid';
+}
+function fecharCadastro(){ $('cadastroModal').style.display='none'; }
+async function salvarNovoProduto(){
+  const payload = {
+    sku: $('new_sku').value.trim(),
+    nome: $('new_nome').value.trim(),
+    preco: parseFloat(($('new_preco').value||'0').replace(',','.'))||0,
+    estoqueMin: parseInt($('new_min').value||'0')||0,
+    ativo: $('new_ativo').value === 'true',
+    // extras visuais (GS atual ignora; posso te passar patch depois)
+    categoria: $('new_cat').value.trim(),
+    unidade: $('new_un').value.trim(),
+    estoqueInicial: 0
+  };
+  if (!payload.sku || !payload.nome){ toast('SKU e Produto são obrigatórios.'); return; }
+  loading(true);
+  const url = API_BRIDGE_URL + '?action=register&payload=' + encodeURIComponent(JSON.stringify(payload));
+  const res = await jsonp(url);
+  loading(false);
+  if (res && res.ok){ toast(res.msg || 'Produto cadastrado'); fecharCadastro(); carregarProdutos(); }
+  else { toast(res?.msg || 'Erro ao cadastrar'); }
+}
+
+/* Reposição (turquesa) */
+function abrirReposicao(){
+  const tb = $('repoLista'); tb.innerHTML='';
+  PRODUTOS.forEach(p=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${p.sku}</td><td>${p.nome}</td>
+      <td><input id="repo_${p.sku}" type="number" min="0" placeholder="0"></td>`;
+    tb.appendChild(tr);
+  });
+  $('reposicaoModal').style.display='grid';
+}
+function fecharReposicao(){ $('reposicaoModal').style.display='none'; }
+async function confirmarReposicao(){
+  const itens = [];
+  PRODUTOS.forEach(p=>{
+    const n = parseInt(($('repo_'+p.sku)?.value)||'0')||0;
+    if (n>0) itens.push({ sku:p.sku, qtd:n });
+  });
+  if (!itens.length){ toast('Informe ao menos uma quantidade.'); return; }
+  loading(true);
+  const url = API_BRIDGE_URL + '?action=restock&payload=' + encodeURIComponent(JSON.stringify({ itens, obs:'Reposição via PDV (GitHub)' }));
+  const res = await jsonp(url);
+  loading(false);
+  if (res && res.ok){ toast('Estoque ajustado 😄'); fecharReposicao(); carregarProdutos(); }
+  else { toast(res?.msg || 'Erro na reposição'); }
+}
+
+/* Pagamento (lime) */
+function abrirPagamento(){
+  if (!CARRINHO.size){ toast('Adicione itens antes.'); return; }
+  $('tagManual').value='';
+  $('pagamentoModal').style.display='grid';
+  // mostra botão NFC apenas onde existe
+  if ('NDEFReader' in window){ $('btnNFC').style.display='inline-flex'; }
+  else { $('btnNFC').style.display='none'; }
+}
+function fecharPagamento(){ $('pagamentoModal').style.display='none'; }
+
+(async function nfcInit(){
+  if (!('NDEFReader' in window)) return;
+  $('btnNFC').onclick = async ()=>{
+    try{
+      const reader = new NDEFReader();
+      await reader.scan();
+      reader.onreading = (_ev)=>{
+        const uid = ( _ev.serialNumber || '' ).toUpperCase();
+        if (uid) confirmarPagamento(uid);
+        else toast('Não foi possível ler a TAG.');
+      };
+      toast('Aproxime a TAG…');
+    }catch(_){ /* silencioso no iOS */ }
+  };
+})();
+
+async function confirmarPagamento(uidOpt){
+  const manual = $('tagManual').value.trim().toUpperCase();
+  const tagUID = (uidOpt || manual);
+  if (!tagUID){ toast('Aproxime a TAG ou digite o UID.'); return; }
+
+  const itens = Array.from(CARRINHO.values()).map(i=>({ sku:i.sku, qtd:i.qtd }));
+  const operador = $('operador').value.trim();
+
+  loading(true);
+  const url = API_BRIDGE_URL + '?action=sale&payload=' + encodeURIComponent(JSON.stringify({ itens, operador, tagUID }));
+  const res = await jsonp(url);
+  loading(false);
+
+  if (res && res.ok){
+    $('pagamentoModal').style.display='none';
+    CARRINHO.clear(); renderPedido();
+    toast('Obrigado pela compra 😄');
+  } else {
+    toast(res?.msg || 'Não foi possível fechar o pedido');
+  }
+}
+
+/* Carregar produtos via Bridge */
+async function carregarProdutos(){
+  loading(true);
+  const res = await jsonp(API_BRIDGE_URL + '?action=products');
+  loading(false);
+  if (res && res.ok){
+    // Normaliza campos opcionais vindos do GAS
+    PRODUTOS = (res.data || []).map(p=>({
+      sku: p.sku, nome: p.nome,
+      categoria: p.categoria || '', unidade: p.unidade || '',
+      preco: Number(p.preco)||0, estoqueMin: Number(p.estoqueMin)||0,
+      ativo: p.ativo !== false
+    }));
+    renderProdutos();
+  } else {
+    toast(res?.msg || 'Erro ao listar produtos');
+  }
+}
+
+/* Init */
+window.onload = ()=>{
+  carregarProdutos();
+  // Pass-through UID se a URL vier com ?tagUID=
+  const q = new URLSearchParams(location.search);
+  const uid = (q.get('tagUID') || q.get('uid') || '').toUpperCase();
+  if (uid){ abrirPagamento(); $('tagManual').value = uid; }
+};
+</script>
 </body>
 </html>
