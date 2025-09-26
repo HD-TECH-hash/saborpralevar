@@ -27,9 +27,13 @@
 html,body{height:100%}
 body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter;color:var(--ink);
      background:linear-gradient(0deg,#f7fafc,#f3f7f9);}
+
+/* cabeçalho */
 header{padding:18px 16px; display:flex; flex-direction:column; align-items:center; gap:10px;}
-header img{height:84px;width:auto}
-h1{margin:0; font-size:18px; color:var(--purple); font-weight:900}
+header img{height:96px;width:auto} /* logo maior e central */
+h1{margin:0; font-size:18px; color:#531b61; font-weight:900}
+
+/* ações topo */
 .actions{display:flex; gap:10px; width:100%; max-width:680px; justify-content:center; flex-wrap:wrap}
 .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; border:none; border-radius:14px; padding:12px 16px; font-weight:800; cursor:pointer; transition:transform .12s}
 .btn:active{transform:translateY(1px)}
@@ -37,28 +41,34 @@ h1{margin:0; font-size:18px; color:var(--purple); font-weight:900}
 .btn.menu{background:var(--green); color:#0a0a0a}
 .btn.danger{background:var(--danger); color:#fff}
 .btn.ok{background:var(--ok); color:#fff}
+
+/* layout */
 main{max-width:760px; margin:8px auto 80px; padding:0 12px}
 .card{background:var(--card); border-radius:16px; box-shadow:0 18px 40px rgba(18,36,22,.06); border:1px solid #eef2f6; overflow:hidden}
-.card h2{margin:0; padding:14px 16px; font-size:18px; color:var(--purple); border-bottom:1px solid #f1f5f9}
+.card h2{margin:0; padding:14px 16px; font-size:18px; color:#531b61; border-bottom:1px solid #f1f5f9}
 .card .body{padding:12px}
 .grid{display:grid; gap:12px}
 @media(min-width:720px){ .grid{ grid-template-columns: 1.1fr .9fr; } }
+
+/* lista de produtos */
 .prod{display:flex; justify-content:space-between; align-items:center; padding:12px; border-bottom:1px dashed #eef2f7}
 .prod:last-child{border-bottom:none}
 .muted{color:var(--muted); font-size:13px}
 .qty{display:flex; gap:8px; align-items:center}
 .btn-min{padding:8px 12px; border:1px solid #e6eef6; background:#fff; border-radius:12px; font-weight:800}
 input, select{padding:10px; border:1px solid #e6eef6; border-radius:10px; font-size:16px; min-height:40px}
+
+/* tabela pedido */
 table{width:100%; border-collapse:collapse}
 th,td{padding:10px; border-bottom:1px solid #f1f5f9; text-align:left; font-size:14px}
 tfoot td{font-weight:800}
 #listaProdutos{max-height:60vh; overflow:auto}
 
-/* Overlays */
+/* Overlays base */
 .overlay{position:fixed; inset:0; display:none; place-items:center; background:rgba(2,6,23,.45); z-index:50}
-.modal{width:min(720px,96vw); border-radius:16px; overflow:hidden; box-shadow:0 30px 70px rgba(2,8,23,.35)}
+.modal{width:min(760px,96vw); border-radius:18px; overflow:hidden; box-shadow:0 30px 70px rgba(2,8,23,.35)}
 .modal .top{padding:16px 18px; color:#fff; font-weight:900}
-.modal .content{padding:14px 16px}
+.modal .content{padding:16px}
 
 /* Cadastro (laranja) */
 .modal.orange .top{background:var(--orange)}
@@ -68,9 +78,18 @@ tfoot td{font-weight:800}
 .modal.turq .top{background:var(--turq); color:#05333a}
 .modal.turq .content{background:var(--turq-soft)}
 
-/* Pagamento (lime) */
+/* Pagamento (lime) + layout com imagem */
 .modal.lime .top{background:linear-gradient(90deg,#7ee787,#b6f18c); color:#05350a}
 .modal.lime .content{background:var(--lime)}
+.pay-modal{display:grid; gap:14px}
+.pay-head{margin:0 0 6px 0; font-size:16px; color:#0b3b24}
+.pay-body{display:grid; gap:10px}
+.pay-illustration{display:grid; place-items:center; padding:4px 0 2px}
+.pay-illustration img{width:100%; max-width:460px; height:auto; object-fit:contain; filter:drop-shadow(0 12px 28px rgba(2,6,23,.22))}
+.pay-actions{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+@media (max-width:420px){ .pay-actions{grid-template-columns:1fr} .pay-illustration img{max-width:360px} }
+/* iOS: campo menor pra caber melhor com a ilustração */
+.ios #tagManual{padding:10px 12px; height:40px; font-size:16px}
 
 /* Toast e Loading */
 .toast{position:fixed; left:50%; transform:translateX(-50%); bottom:18px; background:#d9f99d; color:#052e1b; padding:10px 14px; border-radius:12px; box-shadow:0 10px 30px rgba(2,6,23,.2); display:none; z-index:100}
@@ -183,17 +202,30 @@ footer{position:fixed; left:0; right:0; bottom:0; text-align:center; padding:8px
   </div>
 </div>
 
-<!-- Modal PAGAMENTO (lime) -->
+<!-- Modal PAGAMENTO (lime) com imagem -->
 <div class="overlay" id="pagamentoModal">
   <div class="modal lime">
     <div class="top">Aproxime o cartão</div>
     <div class="content">
-      <p style="margin:0 0 8px 0">Aproxime a TAG NFC (Android/Chrome) ou digite o UID manualmente.</p>
-      <input id="tagManual" placeholder="TagUID (manual)" style="width:100%; margin-bottom:10px">
-      <div style="display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap">
-        <button class="btn" onclick="fecharPagamento()">Cancelar</button>
-        <button class="btn" id="btnNFC" style="display:none">📶 Ler TAG (NFC)</button>
-        <button class="btn ok" onclick="confirmarPagamento()">Confirmar pagamento</button>
+      <div class="pay-modal">
+        <p class="pay-head">Aproxime a TAG NFC (Android/Chrome) ou digite o UID manualmente.</p>
+
+        <div class="pay-illustration">
+          <img src="cartao.png"
+               onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/HD-TECH-hash/hd-tech-hash.github.io/main/cartao.png';"
+               alt="Encoste o seu cartão">
+        </div>
+
+        <div class="pay-body">
+          <input id="tagManual" placeholder="TagUID (manual)">
+          <div class="pay-actions">
+            <button class="btn" onclick="fecharPagamento()">Cancelar</button>
+            <div style="display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap">
+              <button class="btn" id="btnNFC" style="display:none">📶 Ler TAG (NFC)</button>
+              <button class="btn ok" onclick="confirmarPagamento()">Confirmar pagamento</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -231,6 +263,9 @@ function jsonp(url, cbname){
 /* Estado */
 let PRODUTOS = [];
 let CARRINHO = new Map();
+
+/* iOS tweak (campo menor) */
+(function(){ const ua = navigator.userAgent||""; if(/iPhone|iPad|iPod/i.test(ua)){ document.documentElement.classList.add('ios'); }})();
 
 /* Render cardápio */
 function renderProdutos(){
@@ -279,7 +314,6 @@ function renderPedido(){
 
 /* Cadastro (laranja) */
 function abrirCadastro(){
-  // tabela de existentes
   const tb = $('cadastroLista'); tb.innerHTML='';
   PRODUTOS.forEach(p=>{
     const tr = document.createElement('tr');
@@ -297,7 +331,6 @@ async function salvarNovoProduto(){
     preco: parseFloat(($('new_preco').value||'0').replace(',','.'))||0,
     estoqueMin: parseInt($('new_min').value||'0')||0,
     ativo: $('new_ativo').value === 'true',
-    // extras visuais (GS atual ignora; posso te passar patch depois)
     categoria: $('new_cat').value.trim(),
     unidade: $('new_un').value.trim(),
     estoqueInicial: 0
@@ -343,7 +376,6 @@ function abrirPagamento(){
   if (!CARRINHO.size){ toast('Adicione itens antes.'); return; }
   $('tagManual').value='';
   $('pagamentoModal').style.display='grid';
-  // mostra botão NFC apenas onde existe
   if ('NDEFReader' in window){ $('btnNFC').style.display='inline-flex'; }
   else { $('btnNFC').style.display='none'; }
 }
@@ -356,7 +388,7 @@ function fecharPagamento(){ $('pagamentoModal').style.display='none'; }
       const reader = new NDEFReader();
       await reader.scan();
       reader.onreading = (_ev)=>{
-        const uid = ( _ev.serialNumber || '' ).toUpperCase();
+        const uid = (_ev.serialNumber||'').toUpperCase();
         if (uid) confirmarPagamento(uid);
         else toast('Não foi possível ler a TAG.');
       };
@@ -393,7 +425,6 @@ async function carregarProdutos(){
   const res = await jsonp(API_BRIDGE_URL + '?action=products');
   loading(false);
   if (res && res.ok){
-    // Normaliza campos opcionais vindos do GAS
     PRODUTOS = (res.data || []).map(p=>({
       sku: p.sku, nome: p.nome,
       categoria: p.categoria || '', unidade: p.unidade || '',
@@ -409,7 +440,6 @@ async function carregarProdutos(){
 /* Init */
 window.onload = ()=>{
   carregarProdutos();
-  // Pass-through UID se a URL vier com ?tagUID=
   const q = new URLSearchParams(location.search);
   const uid = (q.get('tagUID') || q.get('uid') || '').toUpperCase();
   if (uid){ abrirPagamento(); $('tagManual').value = uid; }
