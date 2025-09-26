@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Sabor pra Levar — NFC</title>
 
+  <meta http-equiv="Cache-Control" content="no-store, max-age=0, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#531b61">
   <link rel="apple-touch-icon" href="sabor.png">
@@ -64,70 +68,7 @@
   <footer>Desenvolvido por Alexandre Cavalcante</footer>
   <div id="toast" class="toast"></div>
 
-  <script>
-    // ======= CONFIGURE SEU GAS AQUI =======
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbyEgh6FXUtdR0YrE-15KqpLMhsSIQT1dj1Cmfwy1Sf8fuhwNlGHObeiOqS9GfMXS4imnA/exec";
-    // ======================================
-
-    const $ = (id)=>document.getElementById(id);
-    const toast = (m)=>{ const t=$("toast"); t.textContent=m; t.style.display="block"; setTimeout(()=>t.style.display="none",2500); };
-
-    // 🔧 MODO RESET (use uma vez abrindo com ?reset=1)
-    (async function maybeReset(){
-      const p = new URLSearchParams(location.search);
-      if (p.get("reset")==="1"){
-        try{
-          if ('serviceWorker' in navigator){
-            const regs = await navigator.serviceWorker.getRegistrations();
-            regs.forEach(r=>r.unregister());
-          }
-          if (window.caches){
-            const keys = await caches.keys();
-            await Promise.all(keys.map(k=>caches.delete(k)));
-          }
-          sessionStorage.setItem("reset-done","1");
-        }catch(e){}
-      }
-    })();
-
-    // PWA (deixa, mas se quiser testar sem cache, comente a linha abaixo por um momento)
-    if ("serviceWorker" in navigator){ navigator.serviceWorker.register("./sw.js").catch(()=>{}); }
-
-    // Botões principais
-    $("btnAbrir").onclick = ()=> window.location.href = GAS_URL;
-
-    $("btnUID").onclick = ()=>{
-      const uid = $("uid").value.trim().toUpperCase();
-      if(!uid) return toast("Digite o UID.");
-      window.location.href = GAS_URL + "?tagUID=" + encodeURIComponent(uid);
-    };
-
-    // WebNFC (Android/Chrome) — no iPhone fica oculto (sem erro chato)
-    (async function initNFC(){
-      if (!("NDEFReader" in window)) return;
-      $("nfcBlock").classList.remove("hide");
-      $("btnNFC").onclick = async ()=>{
-        try{
-          const reader = new NDEFReader();
-          await reader.scan();
-          reader.onreading = (ev)=>{
-            const uid = (ev.serialNumber||"").toUpperCase();
-            if(!uid){ toast("Não foi possível ler a TAG."); return; }
-            window.location.href = GAS_URL + "?tagUID=" + encodeURIComponent(uid);
-          };
-          toast("Aproxime a TAG…");
-        }catch(_){ /* silencioso */ }
-      };
-    })();
-
-    // Pass-through: se vier já com ?tagUID=XYZ
-    (function passThrough(){
-      const p = new URLSearchParams(location.search);
-      const uid = (p.get("tagUID") || p.get("uid") || "").toUpperCase();
-      if (uid){
-        window.location.replace(GAS_URL + "?tagUID=" + encodeURIComponent(uid));
-      }
-    })();
-  </script>
+  <!-- JS externo com versionamento p/ quebrar cache -->
+  <script src="app.js?v=3"></script>
 </body>
 </html>
