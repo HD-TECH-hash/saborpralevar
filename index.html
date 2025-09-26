@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="pt-br">
 <head>
@@ -19,15 +18,15 @@
   --danger:#ef4444;
   --ok:#16a34a;
   --lime:#d9f99d;
-  --orange:#ff8c42;            /* CADASTRO (laranja) */
+  --orange:#ff8c42;      /* CADASTRO (laranja) */
   --orange-soft:#fff0e6;
-  --turq:#6ee7e7;              /* REPOSIÇÃO (turquesa clara) */
+  --turq:#6ee7e7;        /* REPOSIÇÃO (turquesa clara) */
   --turq-soft:#e6fbfb;
 
   /* novos tons dos cards */
-  --menu-soft:#eef8f0;         /* verde MUITO clarinho p/ Cardápio */
-  --pedido-soft:#f4f0f8;       /* roxo MUITO clarinho p/ Pedido */
-  --saldo:#2563eb;             /* azul do badge de saldo */
+  --menu-soft:#eef8f0;   /* verde MUITO clarinho p/ Cardápio */
+  --pedido-soft:#f4f0f8; /* roxo MUITO clarinho p/ Pedido */
+  --saldo:#2563eb;       /* azul do badge de saldo */
 }
 *{box-sizing:border-box}
 html,body{height:100%}
@@ -62,7 +61,7 @@ main{max-width:900px; margin:8px auto 18px; padding:0 12px}
 @media(min-width:820px){ .grid{ grid-template-columns: 1.1fr .9fr; } }
 
 /* cores pedidas nos 2 cards principais */
-.card.menu { background: var(--menu-soft); }
+.card.menu   { background: var(--menu-soft); }
 .card.pedido { background: var(--pedido-soft); }
 
 /* lista de produtos */
@@ -85,6 +84,11 @@ th,td{padding:10px; border-bottom:1px solid #f1f5f9; text-align:left; font-size:
 tfoot td{font-weight:800}
 #listaProdutos{max-height:60vh; overflow:auto}
 
+/* wrappers de tabela c/ rolagem H+V (evita corte no iPhone) */
+.table-wrap{overflow:auto; border:1px solid #f1f5f9; border-radius:12px; background:#fff; margin-bottom:10px}
+.table-wide{min-width:900px}
+.table-wide th, .table-wide td{white-space:nowrap}
+
 /* Overlays base */
 .overlay{position:fixed; inset:0; display:none; place-items:center; background:rgba(2,6,23,.45); z-index:50}
 .modal{width:min(860px,96vw); border-radius:18px; overflow:hidden; box-shadow:0 30px 70px rgba(2,8,23,.35)}
@@ -94,12 +98,6 @@ tfoot td{font-weight:800}
 /* Cadastro (laranja) */
 .modal.orange .top{background:var(--orange)}
 .modal.orange .content{background:var(--orange-soft)}
-/* wrapper com rolagem H e V para não cortar colunas */
-.table-wrap{
-  overflow:auto; border:1px solid #f1f5f9; border-radius:12px; background:#fff; margin-bottom:10px
-}
-.table-wide{min-width:900px}      /* força rolagem horizontal se a tela for menor */
-.table-wide th, .table-wide td{white-space:nowrap}
 
 /* Reposição (turquesa) */
 .modal.turq .top{background:var(--turq); color:#05333a}
@@ -124,7 +122,7 @@ tfoot td{font-weight:800}
 .burger{width:84px; height:84px; display:grid; place-items:center; font-size:44px; animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* Rodapé MENOR e não fixo (vai junto com a página) */
+/* Rodapé MENOR e não fixo (desce junto) */
 footer{margin:18px 0 8px; text-align:center; color:#6b7280; font-size:12px}
 </style>
 </head>
@@ -373,7 +371,7 @@ async function salvarNovoProduto(){
   const url = API_BRIDGE_URL + '?action=register&payload=' + encodeURIComponent(JSON.stringify(payload));
   const res = await jsonp(url);
   loading(false);
-  if (res && res.ok){ toast(res.msg || 'Produto cadastrado'); fecharCadastro(); carregarProdutos(); }
+  if (res && res.ok){ toast(res.msg || 'Produto cadastrado'); fecharCadastro(); carregarTudo(); }
   else { toast(res?.msg || 'Erro ao cadastrar'); }
 }
 
@@ -400,7 +398,7 @@ async function confirmarReposicao(){
   const url = API_BRIDGE_URL + '?action=restock&payload=' + encodeURIComponent(JSON.stringify({ itens, obs:'Reposição via PDV (GitHub)' }));
   const res = await jsonp(url);
   loading(false);
-  if (res && res.ok){ toast('Estoque ajustado 😄'); fecharReposicao(); carregarProdutos(); }
+  if (res && res.ok){ toast('Estoque ajustado 😄'); fecharReposicao(); carregarTudo(); }
   else { toast(res?.msg || 'Erro na reposição'); }
 }
 
@@ -447,18 +445,15 @@ async function confirmarPagamento(uidOpt){
     $('pagamentoModal').style.display='none';
     CARRINHO.clear(); renderPedido();
     toast('Obrigado pela compra 😄');
-    // Recarrega saldo depois da venda
-    try{ await carregarSaldo(); renderProdutos(); }catch(_){}
+    await carregarSaldoSafe(); renderProdutos();   // saldo atualizado
   } else {
     toast(res?.msg || 'Não foi possível fechar o pedido');
   }
 }
 
-/* Carregar produtos + (opcional) saldo */
+/* Carrega PRODUTOS e SALDO */
 async function carregarProdutos(){
-  loading(true);
   const res = await jsonp(API_BRIDGE_URL + '?action=products');
-  loading(false);
   if (res && res.ok){
     PRODUTOS = (res.data || []).map(p=>({
       sku: p.sku, nome: p.nome,
@@ -466,22 +461,36 @@ async function carregarProdutos(){
       preco: Number(p.preco)||0, estoqueMin: Number(p.estoqueMin)||0,
       ativo: p.ativo !== false
     }));
-    // tenta buscar saldo (se o endpoint existir)
-    try{ await carregarSaldo(); }catch(_){}
-    renderProdutos();
-  } else {
-    toast(res?.msg || 'Erro ao listar produtos');
+  }else{
+    throw new Error(res?.msg || 'Erro ao listar produtos');
   }
 }
-
-async function carregarSaldo(){
-  const r = await jsonp(API_BRIDGE_URL + '?action=saldo');
-  if (r && r.ok && r.saldo) SALDO = r.saldo;
+async function carregarSaldoSafe(){
+  // tenta 'saldo', se não houver, usa 'stock' (data)
+  let r = await jsonp(API_BRIDGE_URL + '?action=saldo');
+  if (!(r && r.ok)) r = await jsonp(API_BRIDGE_URL + '?action=stock');
+  if (r && r.ok){
+    SALDO = r.saldo || r.data || {};
+  } else {
+    SALDO = {};
+  }
+}
+async function carregarTudo(){
+  loading(true);
+  try{
+    await carregarProdutos();
+    await carregarSaldoSafe();
+    renderProdutos();
+  }catch(e){
+    toast(e.message || e);
+  }finally{
+    loading(false);
+  }
 }
 
 /* Init */
 window.onload = ()=>{
-  carregarProdutos();
+  carregarTudo();
   // UID via querystring
   const q = new URLSearchParams(location.search);
   const uid = (q.get('tagUID') || q.get('uid') || '').toUpperCase();
