@@ -1,5 +1,5 @@
-// +++ ADICIONE ESTE CASE NO doGet +++
-case "stock": {
-  var det = apiGetSaldoAtual();         // { SKU: saldo }
-  return _jsonp_(cb, { ok:true, data: det });
-}
+      case "saldo": {
+        // devolve { ok:true, saldo: { SKU: quantidade, ... } }
+        var mapa = apiGetSaldoMapa();
+        return _jsonp_(cb, { ok:true, saldo: mapa });
+      }
