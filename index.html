@@ -2,158 +2,143 @@
 <html lang="pt-br">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Sabor pra Levar — NFC</title>
-
-<link rel="manifest" href="manifest.webmanifest">
+<link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#531b61">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
 
 <style>
 :root{
-  --purple:#531b61; --green:#a9c09b; --ink:#0b1324;
-  --muted:#64748b; --lime:#d9f99d; --bg:#f3f7f9;
+  --purple:#531b61;
+  --lime:#d9f99d;
+  --lime-strong:#bef264;
+  --ok:#16a34a;
+  --danger:#ef4444;
+  --muted:#64748b;
+  --bg:#f7fafc;
 }
-*{box-sizing:border-box}
-html,body{height:100%}
 body{
-  margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter;
-  background:linear-gradient(0deg,#f7fafc 0%, var(--bg) 100%); color:var(--ink);
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter;
+  background:var(--bg);
+  color:#0b1324;
 }
-.header{
-  padding:16px; display:flex; align-items:center; gap:12px;
-  background:linear-gradient(90deg,#531b61,#531b61); color:#fff; position:sticky; top:0; z-index:10;
-  box-shadow:0 6px 20px rgba(0,0,0,.08);
+header{
+  background:var(--purple);
+  color:#fff;
+  padding:14px;
+  display:flex;
+  align-items:center;
+  gap:12px;
 }
-.header img{height:40px; width:auto; border-radius:8px}
-.container{
-  min-height:calc(100% - 72px); display:grid; place-items:center; padding:20px;
+header img{height:42px;width:auto;border-radius:6px}
+header h1{font-size:18px;margin:0;font-weight:700}
+main{
+  padding:18px;
+  display:flex;
+  flex-direction:column;
+  gap:18px;
 }
 .card{
-  width:min(560px,92vw); background:#fff; border:1px solid #eef2f6; border-radius:18px;
-  box-shadow:0 18px 40px rgba(18,36,22,.06); padding:22px;
+  background:#fff;
+  border-radius:14px;
+  box-shadow:0 8px 18px rgba(0,0,0,.08);
+  padding:20px;
 }
-h1{margin:8px 0 4px 0; font-size:22px; color:var(--purple)}
-p{margin:0 0 12px 0; color:var(--muted)}
-.actions{display:grid; gap:12px; margin-top:12px}
+.card h2{margin:0 0 12px 0;color:var(--purple)}
+input{
+  width:100%;
+  padding:12px;
+  border:1px solid #ddd;
+  border-radius:10px;
+  font-size:15px;
+}
 .btn{
-  padding:14px 16px; border-radius:14px; font-weight:800; cursor:pointer; border:none;
-  transition:transform .12s ease, filter .12s ease, opacity .12s ease;
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:12px;
+  font-size:16px;
+  font-weight:700;
+  cursor:pointer;
+  margin-top:10px;
 }
-.btn:active{transform:translateY(1px)}
-.btn.primary{background:var(--green); color:#0a0a0a; box-shadow:0 10px 24px rgba(169,192,155,.45)}
-.btn.purple{background:var(--purple); color:#fff; box-shadow:0 10px 24px rgba(83,27,97,.35)}
-.input{
-  width:100%; padding:14px 16px; border:1px solid #e6eef6; border-radius:14px; font-size:16px;
-}
-.row{display:flex; gap:10px}
-@media (max-width:480px){ .row{flex-direction:column} }
-.status{margin-top:10px; color:var(--muted); font-size:14px}
+.btn.primary{background:var(--purple);color:#fff}
+.btn.ok{background:var(--ok);color:#fff}
+.btn.danger{background:var(--danger);color:#fff}
+.btn.lime{background:linear-gradient(90deg,#7ee787,#b6f18c);color:#05350a}
+.note{font-size:13px;color:var(--muted);margin-top:10px}
 .toast{
-  position:fixed; left:50%; transform:translateX(-50%); bottom:18px;
-  background:var(--lime); color:#052e1b; padding:10px 14px; border-radius:12px; display:none;
-  box-shadow:0 6px 20px rgba(2,8,23,.18); font-weight:800; z-index:120;
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+  background:var(--lime-strong);padding:12px 18px;border-radius:12px;
+  font-weight:700;color:#05350a;display:none;z-index:200;
 }
-.loading{display:none; place-items:center; position:fixed; inset:0; background:rgba(255,255,255,.65); z-index:110}
-.spinner{font-size:56px; animation:spin 1s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-footer{
-  padding:12px; text-align:center; color:#fff; background:#531b61; font-weight:700;
-  position:sticky; bottom:0; z-index:5;
-}
-.small{font-size:12px}
 </style>
 </head>
 <body>
-  <div class="header">
-    <img src="sabor.png" alt="Sabor pra Levar">
-    <div style="font-weight:900">Sabor pra Levar — NFC</div>
+<header>
+  <img src="sabor.png" alt="Sabor pra Levar">
+  <h1>Sabor pra Levar — NFC</h1>
+</header>
+
+<main>
+  <div class="card">
+    <h2>Pagamento por cartão NFC</h2>
+    <p>Aproxime a tag NFC no celular ou digite o UID manualmente.</p>
+
+    <button id="btnNFC" class="btn lime">📶 Aproxime o cartão (NFC)</button>
+
+    <input id="tagManual" placeholder="UID manual (ex: 04A1B29C)">
+    <button class="btn primary" onclick="enviarUID()">Enviar UID</button>
+
+    <div class="note">NFC não suportado neste navegador. Digite o UID manual.<br>
+    💡 Dica: adicione esta página à tela inicial para usar como app.</div>
   </div>
+</main>
 
-  <div class="container">
-    <div class="card">
-      <h1>Pagamento por cartão NFC</h1>
-      <p>Aproxime a tag NFC no celular ou digite o UID manualmente.</p>
-
-      <div class="actions">
-        <button class="btn primary" id="btnNFC">📶 Aproxime o cartão (NFC)</button>
-
-        <div class="row">
-          <input class="input" id="manualUID" placeholder="UID manual (ex: 04A1B29C)">
-          <button class="btn purple" id="btnEnviar">Enviar UID</button>
-        </div>
-      </div>
-
-      <div class="status" id="status">Pronto para ler o cartão.</div>
-      <div class="small" style="margin-top:6px;color:#9aa4b2">
-        Dica: adicione esta página à tela inicial para usar como um app.
-      </div>
-    </div>
-  </div>
-
-  <div id="toast" class="toast"></div>
-  <div id="loading" class="loading"><div class="spinner">🍔</div></div>
-
-  <footer>Desenvolvido por Alexandre Cavalcante</footer>
+<div id="toast" class="toast">Mensagem</div>
 
 <script>
-/** CONFIGURE AQUI: URL do seu WebApp GAS (já implantado) */
-const GAS_URL = "https://script.google.com/macros/s/AKfycbwoMDTo5Y-xjkWJSFsanLRkE0q--wU-oZ2Kp5n9-qlABUq_00RfObs-I4B1oJCwqpeuBg/exec";
-
-function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.style.display='block'; clearTimeout(window.__t); window.__t=setTimeout(()=>t.style.display='none',2600); }
-function loading(v){ document.getElementById('loading').style.display = v ? 'grid' : 'none'; }
-function setStatus(s){ document.getElementById('status').textContent = s; }
-
-/** Redireciona para o PDV GAS com ?tagUID=... */
-function gotoPDV(uid){
-  const url = GAS_URL + "?tagUID=" + encodeURIComponent(uid);
-  loading(true);
-  // pequeno delay só pra mostrar o spinner
-  setTimeout(()=>{ window.location.href = url; }, 150);
+// toast
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.style.display='block';
+  setTimeout(()=>t.style.display='none',3000);
 }
 
-/** Botão: Enviar UID manual */
-document.getElementById('btnEnviar').addEventListener('click', ()=>{
-  const v = (document.getElementById('manualUID').value || '').trim().toUpperCase();
-  if (!v){ toast("Informe o UID."); return; }
-  toast("UID enviado. Abrindo PDV…");
-  gotoPDV(v);
-});
+// leitura NFC
+const nfcBtn=document.getElementById('btnNFC');
+if('NDEFReader' in window){
+  nfcBtn.onclick=async ()=>{
+    try{
+      const reader=new NDEFReader();
+      await reader.scan();
+      reader.onreading=(ev)=>{
+        const uid=ev.serialNumber||'';
+        document.getElementById('tagManual').value=uid.toUpperCase();
+        showToast("UID lido: "+uid);
+      };
+    }catch(err){
+      showToast("Erro NFC: "+err);
+    }
+  };
+}else{
+  nfcBtn.onclick=()=>showToast("NFC não suportado. Use UID manual.");
+}
 
-/** Botão: Ler via Web NFC (Android/Chrome) */
-document.getElementById('btnNFC').addEventListener('click', async ()=>{
-  if (!('NDEFReader' in window)){ 
-    toast("NFC não suportado. Use o UID manual."); 
-    setStatus("NFC não suportado neste navegador. Digite o UID manual.");
-    return;
-  }
-  try{
-    const reader = new NDEFReader();
-    await reader.scan();
-    setStatus("Aproxime a tag ao telefone…");
-    reader.onreadingerror = ()=> setStatus("Não foi possível ler. Tente novamente.");
-    reader.onreading = (event)=>{
-      // Em alguns aparelhos, o UID vem em event.serialNumber
-      const uid = (event.serialNumber || '').toUpperCase();
-      if (uid){
-        toast("Tag lida! Abrindo PDV…");
-        gotoPDV(uid);
-      }else{
-        setStatus("Tag lida, mas UID indisponível. Use o campo manual.");
-        toast("Leitura sem UID. Use o campo manual.");
-      }
-    };
-  }catch(err){
-    console.error(err);
-    setStatus("Permissão negada ou erro de leitura.");
-    toast("Não foi possível iniciar o NFC.");
-  }
-});
-
-/** PWA: registra service worker */
-if ('serviceWorker' in navigator){
-  window.addEventListener('load', ()=> navigator.serviceWorker.register('./service-worker.js').catch(()=>{}));
+// envio UID
+function enviarUID(){
+  const uid=document.getElementById('tagManual').value.trim();
+  if(!uid){showToast("Digite ou aproxime a tag");return;}
+  // aqui você pode chamar seu endpoint GAS, ex:
+  // fetch("https://script.google.com/macros/s/AKfycbwo.../exec?tagUID="+uid)
+  showToast("UID enviado: "+uid);
 }
 </script>
+
+<footer style="text-align:center;padding:14px;color:#fff;background:var(--purple);font-weight:700">
+  Desenvolvido por Alexandre Cavalcante
+</footer>
 </body>
 </html>
