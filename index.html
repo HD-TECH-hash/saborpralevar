@@ -23,7 +23,7 @@
   --turq:#6ee7e7;        /* REPOSIÇÃO (turquesa clara) */
   --turq-soft:#e6fbfb;
 
-  /* novos tons dos cards */
+  /* tons pedidos dos cards */
   --menu-soft:#eef8f0;   /* verde MUITO clarinho p/ Cardápio */
   --pedido-soft:#f4f0f8; /* roxo MUITO clarinho p/ Pedido */
   --saldo:#2563eb;       /* azul do badge de saldo */
@@ -289,7 +289,7 @@ function jsonp(url, cbname){
 
 /* Estado */
 let PRODUTOS = [];
-let SALDO = {};              // sku -> qtd
+let SALDO = null;           // se não vier do GAS, fica null e escondemos o badge
 let CARRINHO = new Map();
 
 /* iOS tweak (campo menor) */
@@ -300,7 +300,8 @@ function renderProdutos(){
   const box = $('listaProdutos'); box.innerHTML = '';
   if (!PRODUTOS.length){ box.innerHTML = '<div class="muted">Nenhum produto ativo encontrado</div>'; return; }
   PRODUTOS.forEach(p=>{
-    const saldoTxt = (SALDO && Number.isFinite(SALDO[p.sku])) ? `<span class="badge-saldo">Saldo: ${SALDO[p.sku]}</span>` : '';
+    const saldoTem = SALDO && Object.prototype.hasOwnProperty.call(SALDO, p.sku);
+    const saldoTxt = saldoTem ? `<span class="badge-saldo">Saldo: ${SALDO[p.sku]}</span>` : '';
     const row = document.createElement('div'); row.className='prod';
     row.innerHTML = `
       <div style="min-width:0">
@@ -445,13 +446,14 @@ async function confirmarPagamento(uidOpt){
     $('pagamentoModal').style.display='none';
     CARRINHO.clear(); renderPedido();
     toast('Obrigado pela compra 😄');
-    await carregarSaldoSafe(); renderProdutos();   // saldo atualizado
+    // tenta atualizar saldo (se GAS expuser; senão, segue sem badge)
+    try{ await carregarSaldoSafe(); renderProdutos(); }catch(_){}
   } else {
     toast(res?.msg || 'Não foi possível fechar o pedido');
   }
 }
 
-/* Carrega PRODUTOS e SALDO */
+/* Carrega PRODUTOS e (se disponível) SALDO */
 async function carregarProdutos(){
   const res = await jsonp(API_BRIDGE_URL + '?action=products');
   if (res && res.ok){
@@ -466,20 +468,19 @@ async function carregarProdutos(){
   }
 }
 async function carregarSaldoSafe(){
-  // tenta 'saldo', se não houver, usa 'stock' (data)
-  let r = await jsonp(API_BRIDGE_URL + '?action=saldo');
-  if (!(r && r.ok)) r = await jsonp(API_BRIDGE_URL + '?action=stock');
-  if (r && r.ok){
-    SALDO = r.saldo || r.data || {};
+  // tenta 'saldo'; se o GAS não tiver esse endpoint, ignora sem erro
+  const r = await jsonp(API_BRIDGE_URL + '?action=saldo');
+  if (r && r.ok && (r.saldo || r.data)){
+    SALDO = r.saldo || r.data;
   } else {
-    SALDO = {};
+    SALDO = null; // oculta badges
   }
 }
 async function carregarTudo(){
   loading(true);
   try{
     await carregarProdutos();
-    await carregarSaldoSafe();
+    try{ await carregarSaldoSafe(); }catch(_){ SALDO = null; }
     renderProdutos();
   }catch(e){
     toast(e.message || e);
