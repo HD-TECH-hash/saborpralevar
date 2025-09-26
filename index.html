@@ -124,6 +124,11 @@ tfoot td{font-weight:800}
 
 /* Rodapé MENOR e não fixo (desce junto) */
 footer{margin:18px 0 8px; text-align:center; color:#6b7280; font-size:12px}
+
+/* iOS: evita zoom automático ao focar inputs */
+@supports (-webkit-touch-callout: none) {
+  input, select, textarea { font-size: 16px; }
+}
 </style>
 </head>
 <body>
@@ -142,6 +147,13 @@ footer{margin:18px 0 8px; text-align:center; color:#6b7280; font-size:12px}
     <!-- Cardápio -->
     <section class="card menu">
       <h2>Cardápio</h2>
+
+      <!-- barra de ações do cardápio -->
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; padding:0 16px 8px 16px">
+        <small class="muted">Mostrando saldo (se disponível)</small>
+        <button class="btn" style="padding:8px 12px" onclick="atualizarSaldo()">↻ Atualizar saldo</button>
+      </div>
+
       <div class="body">
         <div id="listaProdutos"></div>
       </div>
@@ -484,6 +496,20 @@ async function carregarTudo(){
     renderProdutos();
   }catch(e){
     toast(e.message || e);
+  }finally{
+    loading(false);
+  }
+}
+
+/* Botão ↻ Atualizar saldo */
+async function atualizarSaldo(){
+  loading(true);
+  try{
+    await carregarSaldoSafe();
+    renderProdutos();
+    toast('Saldo atualizado');
+  }catch(e){
+    toast('Não foi possível atualizar o saldo');
   }finally{
     loading(false);
   }
