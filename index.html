@@ -2,77 +2,36 @@
 <html lang="pt-br">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sabor pra Levar — NFC</title>
-<link rel="manifest" href="manifest.json">
+
+<link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#531b61">
+<link rel="apple-touch-icon" href="sabor.png">
 
 <style>
 :root{
-  --purple:#531b61;
-  --lime:#d9f99d;
-  --lime-strong:#bef264;
-  --ok:#16a34a;
-  --danger:#ef4444;
-  --muted:#64748b;
-  --bg:#f7fafc;
+  --bg:#f3f7f9; --purple:#531b61; --green:#a9c09b;
+  --card:#fff; --ink:#0b1324; --muted:#6b7280;
 }
-body{
-  margin:0;
-  font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter;
-  background:var(--bg);
-  color:#0b1324;
-}
-header{
-  background:var(--purple);
-  color:#fff;
-  padding:14px;
-  display:flex;
-  align-items:center;
-  gap:12px;
-}
-header img{height:42px;width:auto;border-radius:6px}
-header h1{font-size:18px;margin:0;font-weight:700}
-main{
-  padding:18px;
-  display:flex;
-  flex-direction:column;
-  gap:18px;
-}
-.card{
-  background:#fff;
-  border-radius:14px;
-  box-shadow:0 8px 18px rgba(0,0,0,.08);
-  padding:20px;
-}
-.card h2{margin:0 0 12px 0;color:var(--purple)}
-input{
-  width:100%;
-  padding:12px;
-  border:1px solid #ddd;
-  border-radius:10px;
-  font-size:15px;
-}
-.btn{
-  width:100%;
-  padding:14px;
-  border:none;
-  border-radius:12px;
-  font-size:16px;
-  font-weight:700;
-  cursor:pointer;
-  margin-top:10px;
-}
-.btn.primary{background:var(--purple);color:#fff}
-.btn.ok{background:var(--ok);color:#fff}
-.btn.danger{background:var(--danger);color:#fff}
-.btn.lime{background:linear-gradient(90deg,#7ee787,#b6f18c);color:#05350a}
-.note{font-size:13px;color:var(--muted);margin-top:10px}
-.toast{
-  position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
-  background:var(--lime-strong);padding:12px 18px;border-radius:12px;
-  font-weight:700;color:#05350a;display:none;z-index:200;
-}
+*{box-sizing:border-box}  body{margin:0;background:linear-gradient(0deg,#f7fafc,#f3f7f9);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter}
+header{background:var(--purple);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:12px}
+header img{height:40px;width:auto}
+header h1{font-size:18px;margin:0;font-weight:800}
+main{max-width:560px;margin:18px auto;padding:0 12px}
+.card{background:var(--card);border-radius:16px;box-shadow:0 18px 40px rgba(18,36,22,.06);border:1px solid #eef2f6;padding:18px}
+h2{margin:0 0 12px 0;font-size:24px;color:#2a1344}
+p{margin:8px 0;color:var(--muted)}
+.row{display:flex;gap:10px}
+input{width:100%;padding:12px;border:1px solid #e5e7eb;border-radius:12px;font-size:16px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:14px;padding:14px 16px;font-weight:800;cursor:pointer}
+.btn.primary{background:var(--purple);color:#fff;box-shadow:0 8px 18px rgba(83,27,97,.18)}
+.btn.soft{background:var(--green);color:#052e1b}
+.btn:active{transform:translateY(1px)}
+footer{padding:20px 16px;text-align:center;color:#fff;background:var(--purple);margin-top:24px;font-weight:700}
+.note{font-size:13px;color:var(--muted)}
+.hide{display:none !important}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:20px;background:#d9f99d;color:#052e1b;padding:10px 14px;border-radius:12px;box-shadow:0 10px 30px rgba(2,6,23,.2);display:none}
 </style>
 </head>
 <body>
@@ -84,61 +43,75 @@ input{
 <main>
   <div class="card">
     <h2>Pagamento por cartão NFC</h2>
-    <p>Aproxime a tag NFC no celular ou digite o UID manualmente.</p>
+    <p>Abra o PDV, monte o pedido, e só no fechamento aproxime a TAG.</p>
 
-    <button id="btnNFC" class="btn lime">📶 Aproxime o cartão (NFC)</button>
+    <div class="row" style="margin-top:8px">
+      <button id="btnAbrir" class="btn primary" style="flex:1">Abrir PDV</button>
+    </div>
 
-    <input id="tagManual" placeholder="UID manual (ex: 04A1B29C)">
-    <button class="btn primary" onclick="enviarUID()">Enviar UID</button>
+    <div id="nfcBlock" class="row hide" style="margin-top:10px">
+      <button id="btnNFC" class="btn soft" style="flex:1">📶 Ler TAG (NFC)</button>
+    </div>
 
-    <div class="note">NFC não suportado neste navegador. Digite o UID manual.<br>
-    💡 Dica: adicione esta página à tela inicial para usar como app.</div>
+    <div style="margin-top:10px">
+      <input id="uid" maxlength="32" placeholder="UID manual (ex: 0434203AEC4C81)">
+      <div class="row" style="margin-top:10px">
+        <button id="btnUID" class="btn primary" style="flex:1">Abrir PDV com UID</button>
+      </div>
+      <p class="note">Dica: adicione esta página à tela inicial para usar como app.</p>
+    </div>
   </div>
 </main>
 
-<div id="toast" class="toast">Mensagem</div>
+<footer>Desenvolvido por Alexandre Cavalcante</footer>
+<div id="toast" class="toast"></div>
 
 <script>
-// toast
-function showToast(msg){
-  const t=document.getElementById('toast');
-  t.textContent=msg;
-  t.style.display='block';
-  setTimeout(()=>t.style.display='none',3000);
-}
+// ======= CONFIGURE SEU GAS AQUI =======
+const GAS_URL = "https://script.google.com/macros/s/SEU_ID_DO_GAS/exec";
+// ======================================
 
-// leitura NFC
-const nfcBtn=document.getElementById('btnNFC');
-if('NDEFReader' in window){
-  nfcBtn.onclick=async ()=>{
+const $ = (id)=>document.getElementById(id);
+const toast = (m)=>{ const t=$("toast"); t.textContent=m; t.style.display="block"; setTimeout(()=>t.style.display="none",2500); };
+
+// PWA
+if ("serviceWorker" in navigator){ navigator.serviceWorker.register("./sw.js").catch(()=>{}); }
+
+// Botões principais
+$("btnAbrir").onclick = ()=> window.location.href = GAS_URL;
+
+$("btnUID").onclick = ()=>{
+  const uid = $("uid").value.trim().toUpperCase();
+  if(!uid) return toast("Digite o UID.");
+  window.location.href = GAS_URL + "?tagUID=" + encodeURIComponent(uid);
+};
+
+// Mostrar botão NFC apenas onde existir Web NFC (Android/Chrome)
+(async function initNFC(){
+  if (!("NDEFReader" in window)) return;    // iOS: botão fica oculto, sem mensagens
+  $("nfcBlock").classList.remove("hide");
+  $("btnNFC").onclick = async ()=>{
     try{
-      const reader=new NDEFReader();
+      const reader = new NDEFReader();
       await reader.scan();
-      reader.onreading=(ev)=>{
-        const uid=ev.serialNumber||'';
-        document.getElementById('tagManual').value=uid.toUpperCase();
-        showToast("UID lido: "+uid);
+      reader.onreading = (ev)=>{
+        const uid = (ev.serialNumber||"").toUpperCase();
+        if(!uid){ toast("Não foi possível ler a TAG."); return; }
+        window.location.href = GAS_URL + "?tagUID=" + encodeURIComponent(uid);
       };
-    }catch(err){
-      showToast("Erro NFC: "+err);
-    }
+      toast("Aproxime a TAG…");
+    }catch(_){ /* silencioso para não exibir erro de permissão */ }
   };
-}else{
-  nfcBtn.onclick=()=>showToast("NFC não suportado. Use UID manual.");
-}
+})();
 
-// envio UID
-function enviarUID(){
-  const uid=document.getElementById('tagManual').value.trim();
-  if(!uid){showToast("Digite ou aproxime a tag");return;}
-  // aqui você pode chamar seu endpoint GAS, ex:
-  // fetch("https://script.google.com/macros/s/AKfycbwo.../exec?tagUID="+uid)
-  showToast("UID enviado: "+uid);
-}
+// Se vier com ?tagUID=XYZ ou ?uid=XYZ → encaminha direto ao GAS
+(function passThrough(){
+  const p = new URLSearchParams(location.search);
+  const uid = (p.get("tagUID") || p.get("uid") || "").toUpperCase();
+  if (uid){
+    window.location.replace(GAS_URL + "?tagUID=" + encodeURIComponent(uid));
+  }
+})();
 </script>
-
-<footer style="text-align:center;padding:14px;color:#fff;background:var(--purple);font-weight:700">
-  Desenvolvido por Alexandre Cavalcante
-</footer>
 </body>
 </html>
