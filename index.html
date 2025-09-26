@@ -2,126 +2,154 @@
 <html lang="pt-br">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Sabor pra Levar — PDV (GitHub)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sabor pra Levar — PDV Mobile</title>
+
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#531b61">
+<link rel="apple-touch-icon" href="sabor.png">
+
 <style>
 :root{
-  --bg:#f3f7f9; --purple:#531b61; --green:#a9c09b; --card:#fff; --ink:#0b1324; --muted:#6b7280;
-  --ok:#16a34a; --danger:#ef4444;
+  --bg:#f3f7f9;
+  --purple:#531b61;
+  --green:#a9c09b;
+  --lime:#d9f99d;
+  --card:#fff;
+  --ink:#0b1324;
+  --muted:#6b7280;
+  --danger:#ef4444;
+  --ok:#16a34a;
 }
 *{box-sizing:border-box}
+html,body{height:100%}
 body{margin:0;background:linear-gradient(0deg,#f7fafc,#f3f7f9);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter}
-header{background:var(--purple);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:12px;justify-content:space-between}
-header img{height:40px;width:auto}
-main{max-width:1120px;margin:18px auto;padding:0 12px}
-.grid{display:grid;grid-template-columns:1.2fr .8fr;gap:20px}
-@media (max-width:900px){ .grid{grid-template-columns:1fr; } }
-.card{background:var(--card);border:1px solid #eef2f6;border-radius:16px;box-shadow:0 18px 40px rgba(18,36,22,.06);overflow:hidden}
-.card h2{margin:0;padding:14px 16px;border-bottom:1px solid #f1f5f9;color:var(--purple)}
-.card .body{padding:14px}
-.prod{display:flex;justify-content:space-between;align-items:center;padding:10px;border-bottom:1px dashed #eef2f7}
-.prod:last-child{border-bottom:none}
-.muted{color:var(--muted);font-size:13px}
-.qty{display:flex;gap:10px;align-items:center}
-.btn{border:none;border-radius:12px;padding:10px 14px;font-weight:800;cursor:pointer}
-.btn.primary{background:var(--purple);color:#fff;box-shadow:0 8px 18px rgba(83,27,97,.18)}
-.btn.ok{background:var(--ok);color:#fff}
-.btn.danger{background:var(--danger);color:#fff}
-.btn.menu{background:var(--green);color:#041a0f}
+
+/* topo */
+header{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;background:var(--purple);color:#fff;box-shadow:0 6px 16px rgba(0,0,0,.08)}
+header img{height:40px;width:auto;border-radius:8px}
+
+/* container */
+main{max-width:640px;margin:16px auto;padding:0 12px 96px}
+.card{background:var(--card);border:1px solid #eef2f6;border-radius:16px;box-shadow:0 18px 40px rgba(18,36,22,.06);padding:14px 14px 8px;margin-bottom:14px}
+h2{margin:6px 0 12px 4px;color:var(--purple);font-size:18px}
+
+/* lista produtos */
+#listaProdutos .item{display:flex;justify-content:space-between;align-items:center;border-bottom:1px dashed #eef2f6;padding:10px 6px}
+#listaProdutos .item:last-child{border-bottom:none}
+#listaProdutos .title{font-weight:800}
+#listaProdutos .muted{color:var(--muted);font-size:12px}
+
+.qty{display:flex;align-items:center;gap:8px}
+.btn{border:1px solid #e5e7eb;background:#fff;border-radius:12px;padding:10px 12px;font-weight:800;cursor:pointer}
 .btn:active{transform:translateY(1px)}
+.btn.primary{background:var(--purple);color:#fff;border-color:transparent;box-shadow:0 8px 18px rgba(169,192,155,.45)}
+.btn.ok{background:var(--ok);color:#fff;border-color:transparent}
+.btn.danger{background:var(--danger);color:#fff;border-color:transparent}
+.btn.soft{background:var(--green);color:#041a09;border-color:transparent}
+.btn.block{display:block;width:100%}
+.btn.small{padding:6px 10px;border-radius:10px}
+
 table{width:100%;border-collapse:collapse}
-th,td{padding:10px;border-bottom:1px solid #f1f5f9;text-align:left}
-tfoot td{font-weight:800}
-.overlay{position:fixed;inset:0;display:none;place-items:center;background:rgba(2,6,23,.45);z-index:50}
-.modal{width:min(680px,96vw);border-radius:16px;overflow:hidden;background:#fff;box-shadow:0 30px 70px rgba(2,8,23,.35)}
-.modal .top{padding:16px 18px;background:var(--purple);color:#fff;font-weight:900}
+th,td{border-bottom:1px solid #eef2f6;padding:10px 6px;text-align:left;font-size:14px}
+tfoot td{font-weight:900}
+
+footer{position:fixed;left:0;right:0;bottom:0;background:var(--purple);color:#fff;padding:10px 14px;text-align:center;font-weight:800}
+
+/* overlay / modal */
+.overlay{position:fixed;inset:0;display:none;place-items:center;background:rgba(2,6,23,.45);z-index:200}
+.modal{width:min(640px,94vw);background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,.35)}
+.modal .top{padding:16px 18px;color:#fff;font-weight:900}
 .modal .content{padding:16px 18px}
-.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:20px;background:#d9f99d;color:#052e1b;padding:10px 14px;border-radius:12px;box-shadow:0 10px 30px rgba(2,6,23,.2);display:none;z-index:60}
-.loading{position:fixed;inset:0;display:none;place-items:center;background:rgba(255,255,255,.6);z-index:60}
-.burger{font-size:56px;animation:spin 1s linear infinite}
+.modal .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+
+/* modais temáticos */
+.modal.purple .top{background:var(--purple)}
+.modal.purple .content{background:#faf5ff;color:#2b0b56}
+.modal.lime .top{background:linear-gradient(90deg,#7ee787,#b6f18c);color:#05350a}
+.modal.lime .content{background:var(--lime);color:#052e1b}
+
+/* toast & loading */
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;background:var(--lime);color:#052e1b;padding:10px 14px;border-radius:12px;box-shadow:0 10px 30px rgba(2,6,23,.2);display:none;z-index:300;font-weight:800}
+.loading{position:fixed;inset:0;display:none;place-items:center;background:rgba(255,255,255,.6);z-index:260}
+.spinner{font-size:44px;animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+.hide{display:none!important}
 </style>
 </head>
 <body>
 <header>
-  <div style="display:flex;gap:12px;align-items:center">
-    <img src="sabor.png" alt="Sabor pra Levar">
-    <strong>PDV — GitHub</strong>
-  </div>
+  <img src="sabor.png" alt="Sabor pra Levar">
   <div style="display:flex;gap:8px">
-    <button class="btn menu" onclick="abrirCadastro()">+ Novo produto</button>
-    <button class="btn menu" onclick="abrirReposicao()">Reposição</button>
+    <button class="btn soft" id="btnNovo">+ Novo produto</button>
+    <button class="btn soft" id="btnReposicao">Reposição</button>
   </div>
 </header>
 
 <main>
-  <div class="grid">
-    <section class="card">
-      <h2>Cardápio</h2>
-      <div class="body" id="listaProdutos" style="max-height:70vh;overflow:auto"></div>
-    </section>
-    <section class="card">
-      <h2>Pedido atual</h2>
-      <div class="body">
-        <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px">
-          <button class="btn danger" onclick="limpar()">Limpar</button>
-          <input id="operador" placeholder="Operador (opcional)" style="flex:1;border:1px solid #e6eef6;border-radius:10px;padding:10px">
-        </div>
-        <table>
-          <thead><tr><th>Produto</th><th>Qtd</th><th>Unit (R$)</th><th>Total (R$)</th><th></th></tr></thead>
-          <tbody id="linhas"></tbody>
-          <tfoot><tr><td colspan="3">Total do Pedido</td><td id="total">0,00</td><td></td></tr></tfoot>
-        </table>
-        <div style="display:flex;gap:8px;margin-top:12px;align-items:center">
-          <input id="uidManual" placeholder="UID (iPhone: digite ou use link da TAG)" style="flex:1;border:1px solid #e6eef6;border-radius:10px;padding:10px">
-          <button class="btn ok" onclick="scanNFC()">📶 NFC</button>
-          <button class="btn primary" onclick="fecharConta()">Fechar conta</button>
-        </div>
-      </div>
-    </section>
-  </div>
+  <section class="card">
+    <h2>Cardápio</h2>
+    <div id="listaProdutos"></div>
+  </section>
+
+  <section class="card">
+    <h2>Pedido atual</h2>
+    <div style="display:flex;gap:8px;align-items:center;margin:6px 0 10px 0;flex-wrap:wrap">
+      <button class="btn danger" id="btnLimpar">Limpar</button>
+      <input id="operador" placeholder="Operador (opcional)" style="flex:1;min-width:220px;padding:10px;border:1px solid #e5e7eb;border-radius:10px">
+    </div>
+    <table>
+      <thead><tr><th>Produto</th><th>Qtd</th><th>Unit</th><th>Total</th><th></th></tr></thead>
+      <tbody id="linhas"></tbody>
+      <tfoot><tr><td colspan="3">Total</td><td id="total">0,00</td><td></td></tr></tfoot>
+    </table>
+    <div style="margin-top:12px">
+      <button class="btn primary block" id="btnFechar">Fechar conta</button>
+    </div>
+  </section>
 </main>
 
-<!-- Cadastro -->
-<div class="overlay" id="cadModal">
-  <div class="modal">
-    <div class="top">Cadastrar produto</div>
+<!-- Modal Reposição -->
+<div class="overlay" id="modalReposicao">
+  <div class="modal purple">
+    <div class="top">Repor estoque</div>
     <div class="content">
-      <div style="display:flex;flex-direction:column;gap:8px">
-        <input id="cad_sku" placeholder="SKU">
-        <input id="cad_nome" placeholder="Nome do produto">
-        <input id="cad_preco" placeholder="Preço unitário (ex: 8.50)">
-        <input id="cad_qtd" placeholder="Estoque inicial (opcional)">
-        <input id="cad_min" placeholder="Estoque mínimo (opcional)">
+      <p style="margin:0 0 8px">Informe SKU e quantidade de entrada.</p>
+      <div style="display:flex;gap:8px">
+        <input id="rep_sku" placeholder="SKU" style="flex:1;padding:10px;border:1px solid #e5e7eb;border-radius:10px">
+        <input id="rep_qtd" placeholder="Qtd" style="width:120px;padding:10px;border:1px solid #e5e7eb;border-radius:10px">
       </div>
-      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:10px">
-        <button class="btn" onclick="fecharCadastro()">Cancelar</button>
-        <button class="btn primary" onclick="salvarProduto()">Salvar</button>
+      <div class="actions">
+        <button class="btn" data-close="modalReposicao">Cancelar</button>
+        <button class="btn ok" id="btnConfirmaReposicao">Ajustar estoque</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Reposição -->
-<div class="overlay" id="repModal">
-  <div class="modal">
-    <div class="top">Reposição de estoque</div>
+<!-- Modal Pagamento -->
+<div class="overlay" id="modalPagamento">
+  <div class="modal lime">
+    <div class="top">Aproxime o cartão</div>
     <div class="content">
-      <div style="display:flex;gap:8px">
-        <input id="rep_sku" placeholder="SKU" style="flex:1">
-        <input id="rep_qtd" placeholder="Quantidade" style="width:160px">
+      <p style="margin:0 0 8px">No iPhone: digite o UID manual. No Android/Chrome: você pode tocar em “Ler TAG (NFC)”.</p>
+      <div id="nfcRow" class="hide" style="display:flex;gap:8px;margin-bottom:8px">
+        <button class="btn soft block" id="btnNFC" style="flex:1">📶 Ler TAG (NFC)</button>
       </div>
-      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:10px">
-        <button class="btn" onclick="fecharReposicao()">Cancelar</button>
-        <button class="btn ok" onclick="confirmarReposicao()">Ajustar</button>
+      <input id="tagManual" placeholder="UID manual (ex: 0434203AEC4C81)" style="width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:10px">
+      <div class="actions">
+        <button class="btn" data-close="modalPagamento">Cancelar</button>
+        <button class="btn ok" id="btnPagar">Confirmar pagamento</button>
       </div>
     </div>
   </div>
 </div>
+
+<footer>Desenvolvido por Alexandre Cavalcante</footer>
 
 <div id="toast" class="toast"></div>
-<div id="loading" class="loading"><div class="burger">🍔</div></div>
+<div id="loading" class="loading"><div class="spinner">🍔</div></div>
 
-<script src="app.js?v=10"></script>
+<script src="app.js"></script>
 </body>
 </html>
