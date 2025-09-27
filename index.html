@@ -277,6 +277,7 @@ footer{margin:18px 0 8px; text-align:center; color:#6b7280; font-size:12px}
 
 <footer>Desenvolvido por Alexandre Cavalcante</footer>
 
+<script>
 // ====== CONFIG (sua URL do ApiBridge) ======
 const API_BRIDGE_URL = "https://script.google.com/macros/s/AKfycbxeVPDdna7lhspedOB9-PvHRubAM-MdaUJmE44xrZrnqUx9IxRILw1yfg5uh2aGO8WPLg/exec";
   
@@ -301,10 +302,10 @@ function jsonp(url, cbname){
 
 /* Estado */
 let PRODUTOS = [];
-let SALDO = null;           // se não vier do GAS, fica null e escondemos o badge
+let SALDO = null;
 let CARRINHO = new Map();
 
-/* iOS tweak (campo menor) */
+/* iOS tweak */
 (function(){ const ua=navigator.userAgent||""; if(/iPhone|iPad|iPod/i.test(ua)){ document.documentElement.classList.add('ios'); }})();
 
 /* Render cardápio */
@@ -356,7 +357,7 @@ function renderPedido(){
   $('total').textContent = money(total);
 }
 
-/* Cadastro (laranja) */
+/* Cadastro */
 function abrirCadastro(){
   const tb = $('cadastroLista'); tb.innerHTML='';
   PRODUTOS.forEach(p=>{
@@ -388,7 +389,7 @@ async function salvarNovoProduto(){
   else { toast(res?.msg || 'Erro ao cadastrar'); }
 }
 
-/* Reposição (turquesa) */
+/* Reposição */
 function abrirReposicao(){
   const tb = $('repoLista'); tb.innerHTML='';
   PRODUTOS.forEach(p=>{
@@ -415,7 +416,7 @@ async function confirmarReposicao(){
   else { toast(res?.msg || 'Erro na reposição'); }
 }
 
-/* Pagamento (lime) */
+/* Pagamento */
 function abrirPagamento(){
   if (!CARRINHO.size){ toast('Adicione itens antes.'); return; }
   $('tagManual').value='';
@@ -437,7 +438,7 @@ function fecharPagamento(){ $('pagamentoModal').style.display='none'; }
         else toast('Não foi possível ler a TAG.');
       };
       toast('Aproxime a TAG…');
-    }catch(_){ /* silencioso no iOS */ }
+    }catch(_){ /* iOS pode bloquear */ }
   };
 })();
 
@@ -464,7 +465,7 @@ async function confirmarPagamento(uidOpt){
   }
 }
 
-/* Carrega PRODUTOS e (se disponível) SALDO */
+/* Carrega PRODUTOS + SALDO */
 async function carregarProdutos(){
   const res = await jsonp(API_BRIDGE_URL + '?action=products');
   if (res && res.ok){
@@ -478,21 +479,10 @@ async function carregarProdutos(){
     throw new Error(res?.msg || 'Erro ao listar produtos');
   }
 }
-
-/* === FIX do SALDO (normaliza e valida) === */
 async function carregarSaldoSafe(){
   const r = await jsonp(API_BRIDGE_URL + '?action=saldo');
-  console.log('saldo endpoint →', r);
-  if (!r || r.ok !== true) {
-    throw new Error(r?.msg || 'Endpoint "saldo" não respondeu ok');
-  }
+  if (!r || r.ok !== true) throw new Error(r?.msg || 'Endpoint "saldo" não respondeu ok');
   const raw = (r.saldo !== undefined) ? r.saldo : r.data;
-
-  if (raw === undefined || raw === null) {
-    throw new Error('Resposta do "saldo" sem dados');
-  }
-
-  // Aceita objeto direto { SKU: qtd } ou array de objetos e normaliza
   let obj = {};
   if (Array.isArray(raw)) {
     raw.forEach(it=>{
@@ -505,19 +495,13 @@ async function carregarSaldoSafe(){
   } else {
     throw new Error('Formato de "saldo" inválido');
   }
-
   SALDO = obj;
 }
-
 async function carregarTudo(){
   loading(true);
   try{
     await carregarProdutos();
-    try{ await carregarSaldoSafe(); }catch(e){
-      SALDO = null;
-      console.warn(e);
-      toast('Saldo indisponível no momento');
-    }
+    try{ await carregarSaldoSafe(); }catch(e){ SALDO = null; console.warn(e); toast('Saldo indisponível no momento'); }
     renderProdutos();
   }catch(e){
     toast(e.message || e);
@@ -549,5 +533,6 @@ window.onload = ()=>{
   if (uid){ abrirPagamento(); $('tagManual').value = uid; }
 };
 </script>
+
 </body>
 </html>
