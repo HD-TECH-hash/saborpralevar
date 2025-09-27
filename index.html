@@ -409,7 +409,7 @@ async function confirmarReposicao(){
   });
   if (!itens.length){ toast('Informe ao menos uma quantidade.'); return; }
   loading(true);
-  const url = API_BRIDGE_URL + '?action=restock&payload=' + encodeURIComponent(JSON.stringify({ itens, obs:'Reposição via PDV (GitHub)' }));
+  const url = API_BRIDGE_URL + '?action=restock&payload=' + encodeURIComponent(JSON.stringify({ itens, obs:'Reposição via APP)' }));
   const res = await jsonp(url);
   loading(false);
   if (res && res.ok){ toast('Estoque ajustado 😄'); fecharReposicao(); carregarTudo(); }
